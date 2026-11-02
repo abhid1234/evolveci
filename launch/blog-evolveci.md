@@ -101,6 +101,6 @@ The code, schemas, demo, and limitations are all here:
 
 - [Code and demo](https://github.com/abhid1234/evolveci?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 - [Executable specification](https://github.com/abhid1234/evolveci/blob/main/docs/SPEC.md?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
-- [Green cross-platform CI](https://github.com/abhid1234/evolveci/actions/runs/41392669881?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
+- [Green cross-platform CI](https://github.com/abhid1234/evolveci/pull/5/checks?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 
 It is rough and early. I would especially like people to poke holes in the scenario model: what would make a future-change probe fair enough to trust in your repository?
