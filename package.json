@@ -30,6 +30,7 @@
     "check": "npm run version:check && npm run static:check && npm run docs:check && npm run launch:check && npm run launch:safety-check && npm run build && npm test",
     "docs:check": "node scripts/check-doc-links.mjs",
     "launch:check": "node scripts/check-launch-kit.mjs",
+    "launch:candidate-check": "npm run release:check && npm run launch:production-check",
     "launch:credential-install": "bash launch/video/install-elevenlabs-key.sh",
     "launch:safety-check": "node --test scripts/launch-gates.test.mjs",
     "launch:public-check": "node scripts/check-public-launch-manifest.mjs",

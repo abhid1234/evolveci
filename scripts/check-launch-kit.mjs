@@ -59,7 +59,7 @@ if (failures.length === 0) {
   if (/not yet been published to npm/i.test(`${blog}\n${substack}`)) failures.push("essay still contains stale pre-publication npm copy");
 
   const controlRoom = read("launch/launch-evolveci.html").toString("utf8");
-  for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s"]) {
+  for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s · gated", "npm run launch:candidate-check"]) {
     if (!controlRoom.includes(expected)) failures.push(`launch control room is missing ${expected}`);
   }
 

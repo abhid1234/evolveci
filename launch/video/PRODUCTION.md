@@ -28,6 +28,8 @@ For layout and timing work while ElevenLabs is unavailable, [`render-local-previ
 
 After the Will render, run `npm run launch:production-check`. It fails unless the voice metadata identifies the approved Will configuration, the narration and MP3 hashes agree, the render provenance ties that exact voice, music, and silent master to the checked-in MP4, the tempo-adjusted narration fills the final seconds, and the final master is exactly 66 seconds with the expected H.264/AAC media shape and a safe audible mix. The ordinary `npm run check` intentionally accepts a provisional preview so launch-material work can continue before the credential handoff.
 
+Before merge or publication, run `npm run launch:candidate-check` from a clean checkout. It combines the full package release gate with this production-media gate; both must pass in the same candidate checkout.
+
 ## QA gates
 
 - First frame is nonblank and immediately identifies the passing pull request.

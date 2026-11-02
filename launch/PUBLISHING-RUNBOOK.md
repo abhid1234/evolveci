@@ -5,10 +5,10 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 ## 1. Freeze the release candidate
 
 - Confirm `main` is clean and the release commit is the intended SHA.
-- Run `npm run release:check` from a fresh checkout.
+- Run `npm run launch:candidate-check` from a fresh checkout. This combines the complete package/release verification with the production-video gate.
 - Confirm all GitHub checks are green on the exact release SHA.
 - Confirm `package.json`, lockfile, CLI version, changelog, and proposed tag agree.
-- Run `npm run launch:production-check`; do not proceed if the checked-in video is still the provisional local-voice preview.
+- Do not proceed if the combined candidate check says the checked-in video is still missing the final Will voice or provenance metadata.
 
 ## 2. Publish the package and release
 

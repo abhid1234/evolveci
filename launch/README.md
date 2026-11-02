@@ -18,11 +18,11 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | Figure alt text, video description, and caption checks | Ready |
 | [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md) | Exact morning publish order and independent readbacks | Ready |
 | [`figures/`](figures/) | Five light-theme launch figures and 1100×220 banner | Rendered and visually verified |
-| [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 66-second MP4 | Rendered and verified |
+| [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 66-second MP4 | Visual master verified; final Will voice still gated |
 
 ## Launch sequence
 
-1. Merge the launch-material PR after CI passes.
+1. Generate the final Will track, commit the production media, and run `npm run launch:candidate-check`; merge the launch-material PR only after that combined gate and CI pass.
 2. Bootstrap `@avee1234/evolveci@0.1.0` once with account 2FA, following [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md); the package does not yet exist, so trusted publishing cannot create it.
 3. Verify the npm registry response independently.
 4. Configure trusted publishing for subsequent releases and create the exact-SHA GitHub release.
