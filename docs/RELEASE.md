@@ -23,16 +23,16 @@ The release gate inspects the tarball manifest, installs that tarball into a cle
 Trusted-publisher configuration requires an existing npm package. Publish the first release candidate manually from the clean, tagged repository using account 2FA:
 
 ```bash
-npm publish --access public --provenance
+npm publish --access public --provenance=false --tag next
 ```
 
-Immediately verify the registry readback below. Then configure the npm trusted publisher and remove any temporary automation credential. Never put an OTP or token in an issue, commit, workflow, or chat.
+Local npm publication cannot create GitHub Actions provenance. The explicit `--provenance=false` overrides the package default for this one bootstrap only, and `--tag next` prevents a release candidate from replacing the stable `latest` tag. Immediately verify the registry readback below. Then configure the npm trusted publisher and remove any temporary automation credential. Never put an OTP or token in an issue, commit, workflow, or chat.
 
 ## Publish subsequent releases through trusted publishing
 
 1. Merge the reviewed release commit to `main`.
 2. Create a GitHub release tagged `v<package-version>` from that exact commit.
-3. The release workflow uses Node 24 and npm 11.5.1 or newer, reruns the full gate, and publishes with automatic npm provenance.
+3. The release workflow uses Node 24 and npm 11.5.1 or newer, reruns the full gate, and publishes with automatic npm provenance. Pre-releases use the `next` dist-tag; stable versions use `latest`.
 4. Do not rerun a failed publication blindly. Inspect the workflow and registry first.
 
 ## Independent readback

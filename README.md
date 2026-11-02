@@ -28,13 +28,14 @@ The alpha measures:
 - files and lines changed;
 - total patch churn;
 - test files modified;
-- dependencies introduced.
+- dependencies introduced or version-shifted;
+- exact input-plus-output tokens when an adapter provides complete structured telemetry.
 
 Every result includes the raw logs and changed paths. There is no opaque “AI maintainability score.”
 
 ## Current status
 
-This repository is an executable alpha. It includes the local CLI, YAML configuration validation, safe argv-based process execution, detached worktree isolation, paired base/head orchestration, threshold evaluation, JSON and Markdown reports, and integration tests.
+This repository is an executable alpha. It includes the local CLI, YAML configuration validation, safe argv-based process execution, detached worktree isolation, paired base/head orchestration, threshold evaluation, JSON/Markdown/offline HTML reports, a built-in Codex adapter, and integration tests.
 
 It intentionally does **not** yet include a hosted runner, GitHub App, model billing, Docker isolation, or scenario generation.
 
@@ -181,21 +182,23 @@ The report is deliberately decomposable. Reviewers can see which scenario regres
 - Worktrees are removed after every scenario, including failed runs.
 - Output capture is bounded to avoid unbounded memory use.
 - Truncated stdout and stderr are explicitly marked in JSON evidence.
-- A timed-out command receives `SIGTERM`, followed by `SIGKILL` after one second.
+- On macOS and Linux, a timed-out command's process group receives `SIGTERM`, followed by `SIGKILL` after one second; Windows terminates the direct child process.
 - Configuration requires argv arrays instead of command strings.
-- Agent subprocesses do not inherit arbitrary secrets unless explicitly allowed.
+- Setup, agent, and verifier subprocesses do not inherit arbitrary environment secrets unless explicitly allowed.
+- Evidence contains command output and argv; never place credentials in prompts or command arguments, and review logs before sharing them.
 - Repeated runs use medians and become inconclusive when duration variance exceeds the configured limit.
 
 Worktree isolation is not a security sandbox. Before running untrusted agents or repositories, the next milestone is container or microVM isolation with explicit network, CPU, memory, and filesystem policies.
 
 ## Roadmap
 
-1. Prove the paired mechanism with a purpose-built demo repository.
-2. Add repeat runs, medians, variance, and an inconclusive confidence rule.
-3. Add Codex and Claude Code adapters with token/turn accounting.
-4. Add container isolation and environment caching.
-5. Add a label-triggered GitHub Action that uploads the evidence bundle.
-6. Validate on public repositories before building a hosted product.
+1. ✅ Prove the paired mechanism with a purpose-built demo repository.
+2. ✅ Add repeat runs, medians, variance, and an inconclusive confidence rule.
+3. ✅ Add a Codex adapter with completed-turn token accounting.
+4. Add a Claude Code adapter under the same vendor-neutral contract.
+5. Add container isolation and environment caching.
+6. Add a label-triggered GitHub Action that uploads the evidence bundle.
+7. Validate on public repositories before building a hosted product.
 
 See [the executable specification](docs/SPEC.md) and [implementation plan](docs/IMPLEMENTATION_PLAN.md).
 

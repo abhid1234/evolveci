@@ -85,6 +85,6 @@ Configuration is repository-owned and trusted. Agent-produced code is untrusted.
 - Produce an inconclusive report when both revisions fail a probe.
 - Produce a warning when head succeeds but requires more files than configured.
 - Use medians across repeated pairs and reject high-variance evidence.
-- Keep undeclared parent-process secrets out of the agent environment.
-- Run a real temporary Git repository through base and head worktrees and write both report formats.
+- Keep undeclared parent-process secrets out of setup, agent, and verifier environments.
+- Run a real temporary Git repository through base and head worktrees and write JSON, Markdown, and offline HTML reports.
 - Leave the source checkout unchanged.

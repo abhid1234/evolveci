@@ -43,18 +43,11 @@ async function runScenario(
 ): Promise<ScenarioRun> {
   const worktree = await createWorktree(repository, revision);
   try {
-    if (config.setup) {
-      const setup = await runCommand({ command: config.setup, cwd: worktree.path, timeoutMs: scenario.timeoutMs ?? 300_000 });
-      if (setup.exitCode !== 0) {
-        throw new Error(`setup failed for ${scenario.id}/${side}: ${setup.stderr.trim() || setup.stdout.trim()}`);
-      }
-    }
-    const beforeDependencies = await readDependencies(worktree.path);
     const baseEnvironment: NodeJS.ProcessEnv = {};
     for (const name of ["PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "SHELL", ...config.agent.passEnvironment]) {
       if (process.env[name] !== undefined) baseEnvironment[name] = process.env[name];
     }
-    const runEnvironment: NodeJS.ProcessEnv = {
+    const scenarioEnvironment: NodeJS.ProcessEnv = {
       ...baseEnvironment,
       EVOLVECI_SCENARIO_ID: scenario.id,
       EVOLVECI_REPOSITORY: repository,
@@ -62,6 +55,23 @@ async function runScenario(
       EVOLVECI_REVISION: revision,
       EVOLVECI_SIDE: side,
       EVOLVECI_ATTEMPT: String(attempt),
+    };
+    if (config.setup) {
+      const setup = await runCommand({
+        command: config.setup,
+        cwd: worktree.path,
+        timeoutMs: scenario.timeoutMs ?? 300_000,
+        env: scenarioEnvironment,
+        inheritEnv: config.agent.inheritEnvironment,
+      });
+      if (setup.exitCode !== 0 || setup.timedOut) {
+        const detail = setup.timedOut ? "timed out" : setup.stderr.trim() || setup.stdout.trim();
+        throw new Error(`setup failed for ${scenario.id}/${side}: ${detail}`);
+      }
+    }
+    const beforeDependencies = await readDependencies(worktree.path);
+    const runEnvironment: NodeJS.ProcessEnv = {
+      ...scenarioEnvironment,
       ...(config.agent.promptTransport === "environment" ? { EVOLVECI_PROMPT: scenario.prompt } : {}),
     };
     const agent = await runCommand({
@@ -73,12 +83,13 @@ async function runScenario(
       ...(config.agent.promptTransport === "stdin" ? { stdin: scenario.prompt } : {}),
     });
     const verifier =
-      agent.exitCode === 0
+      agent.exitCode === 0 && !agent.timedOut
         ? await runCommand({
             command: scenario.verify,
             cwd: worktree.path,
             timeoutMs: scenario.timeoutMs ?? 300_000,
-            env: runEnvironment,
+            env: scenarioEnvironment,
+            inheritEnv: config.agent.inheritEnvironment,
           })
         : skippedVerifier(agent);
     const run: ScenarioRun = {

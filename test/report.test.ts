@@ -70,6 +70,23 @@ test("evaluateRuns is inconclusive when both sides fail", () => {
   assert.equal(report.conclusion, "inconclusive");
 });
 
+test("evaluateRuns does not pass when head improves without a successful pair", () => {
+  const report = evaluateRuns("repo", "base", "head", config, [run("base", 0, false), run("head", 1, true)]);
+  assert.equal(report.summaries[0]?.status, "improved");
+  assert.equal(report.conclusion, "inconclusive");
+});
+
+test("evaluateRuns passes when at least one scenario is comparable despite another inconclusive scenario", () => {
+  const stableBase = { ...run("base", 1), scenarioId: "stable" };
+  const stableHead = { ...run("head", 1), scenarioId: "stable" };
+  const unstableBase = { ...run("base", 0, false), scenarioId: "unstable" };
+  const unstableHead = { ...run("head", 0, false), scenarioId: "unstable" };
+  const report = evaluateRuns("repo", "base", "head", config, [stableBase, stableHead, unstableBase, unstableHead]);
+  assert.equal(report.summaries.find((summary) => summary.scenarioId === "stable")?.status, "comparable");
+  assert.equal(report.summaries.find((summary) => summary.scenarioId === "unstable")?.status, "inconclusive");
+  assert.equal(report.conclusion, "pass");
+});
+
 test("evaluateRuns uses medians across repetitions", () => {
   const repeatedConfig: EvolveConfig = {
     ...config,

@@ -31,7 +31,11 @@ test("runComparison evaluates detached base and head worktrees", async () => {
     );
     await writeFile(
       path.join(tools, "verify.mjs"),
-      `import { access } from "node:fs/promises";\nawait access("future.js");\n`,
+      `import { access } from "node:fs/promises";\nif (process.env.EVOLVECI_TEST_SECRET) throw new Error("verifier inherited a secret");\nawait access("future.js");\n`,
+    );
+    await writeFile(
+      path.join(tools, "setup.mjs"),
+      `if (process.env.EVOLVECI_TEST_SECRET) throw new Error("setup inherited a secret");\n`,
     );
 
     await command(repo, ["git", "init", "--quiet"]);
@@ -46,6 +50,7 @@ test("runComparison evaluates detached base and head worktrees", async () => {
 
     const config: EvolveConfig = {
       version: 1,
+      setup: [process.execPath, path.join(tools, "setup.mjs")],
       agent: {
         command: [process.execPath, path.join(tools, "agent.mjs")],
         inheritEnvironment: false,
@@ -72,7 +77,10 @@ test("runComparison evaluates detached base and head worktrees", async () => {
       ],
     };
 
-    const report = await runComparison({ repository: repo, base, head: "HEAD", config, outputDir: output });
+    process.env.EVOLVECI_TEST_SECRET = "must-not-leak";
+    const report = await runComparison({ repository: repo, base, head: "HEAD", config, outputDir: output }).finally(() => {
+      delete process.env.EVOLVECI_TEST_SECRET;
+    });
     assert.equal(report.conclusion, "warning");
     assert.equal(report.runs.length, 4);
     assert.equal(report.runs.find((run) => run.side === "base")?.metrics.filesChanged, 1);

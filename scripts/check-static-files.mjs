@@ -17,5 +17,7 @@ for (const file of yamlFiles) {
 const release = await readFile(new URL("../.github/workflows/release.yml", import.meta.url), "utf8");
 assert.match(release, /id-token: write/);
 assert.match(release, /npm@\^11\.5\.1/);
+assert.match(release, /steps\.package\.outputs\.tag/);
+assert.match(release, /published != 'true'/);
 assert.doesNotMatch(release, /NODE_AUTH_TOKEN|NPM_TOKEN/);
 process.stdout.write(`Static files verified: ${jsonFiles.length} JSON schemas and ${yamlFiles.length} YAML files.\n`);

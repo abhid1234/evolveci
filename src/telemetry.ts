@@ -8,8 +8,12 @@ interface UsageRecord {
   reasoning_output_tokens?: unknown;
 }
 
-function tokenCount(value: unknown): number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+function requiredTokenCount(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
+}
+
+function optionalTokenCount(value: unknown): number | null {
+  return value === undefined ? 0 : requiredTokenCount(value);
 }
 
 export function parseCodexJsonlTelemetry(output: string, truncated = false): AgentTelemetry | null {
@@ -30,21 +34,32 @@ export function parseCodexJsonlTelemetry(output: string, truncated = false): Age
     let event: Record<string, unknown>;
     try {
       const parsed = JSON.parse(line) as unknown;
-      if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) continue;
+      if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
       event = parsed as Record<string, unknown>;
     } catch {
-      continue;
+      return null;
     }
-    if (event.type !== "turn.completed" || event.usage === null || typeof event.usage !== "object" || Array.isArray(event.usage)) {
-      continue;
-    }
+    if (event.type !== "turn.completed") continue;
+    if (event.usage === null || typeof event.usage !== "object" || Array.isArray(event.usage)) return null;
     const usage = event.usage as UsageRecord;
+    const inputTokens = requiredTokenCount(usage.input_tokens);
+    const cachedInputTokens = optionalTokenCount(usage.cached_input_tokens);
+    const cacheWriteInputTokens = optionalTokenCount(usage.cache_write_input_tokens);
+    const outputTokens = requiredTokenCount(usage.output_tokens);
+    const reasoningOutputTokens = optionalTokenCount(usage.reasoning_output_tokens);
+    if (
+      inputTokens === null ||
+      cachedInputTokens === null ||
+      cacheWriteInputTokens === null ||
+      outputTokens === null ||
+      reasoningOutputTokens === null
+    ) return null;
     total.turns += 1;
-    total.inputTokens += tokenCount(usage.input_tokens);
-    total.cachedInputTokens += tokenCount(usage.cached_input_tokens);
-    total.cacheWriteInputTokens += tokenCount(usage.cache_write_input_tokens);
-    total.outputTokens += tokenCount(usage.output_tokens);
-    total.reasoningOutputTokens += tokenCount(usage.reasoning_output_tokens);
+    total.inputTokens += inputTokens;
+    total.cachedInputTokens += cachedInputTokens;
+    total.cacheWriteInputTokens += cacheWriteInputTokens;
+    total.outputTokens += outputTokens;
+    total.reasoningOutputTokens += reasoningOutputTokens;
   }
 
   if (total.turns === 0) return null;

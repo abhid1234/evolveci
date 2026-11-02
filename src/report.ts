@@ -93,7 +93,7 @@ export function evaluateRuns(
 ): ComparisonReport {
   const findings: Finding[] = [];
   const summaries: ScenarioSummary[] = [];
-  let hasInconclusiveScenario = false;
+  let hasComparableScenario = false;
 
   for (const [scenarioId, group] of groupRuns(runs)) {
     const base = summarize(group.base);
@@ -130,7 +130,6 @@ export function evaluateRuns(
       });
     } else if (base.successRate < 1) {
       status = "inconclusive";
-      hasInconclusiveScenario = true;
       findings.push({
         scenarioId,
         severity: "info",
@@ -147,7 +146,6 @@ export function evaluateRuns(
     );
     if (status === "comparable" && variability > config.execution.maxCoefficientOfVariationPercent) {
       status = "inconclusive";
-      hasInconclusiveScenario = true;
       findings.push({
         scenarioId,
         severity: "info",
@@ -230,6 +228,12 @@ export function evaluateRuns(
       }
     }
 
+    const successfulBaseAttempts = new Set(group.base.filter((run) => run.success).map((run) => run.attempt));
+    const hasSuccessfulPair = group.head.some((run) => run.success && successfulBaseAttempts.has(run.attempt));
+    if ((status === "comparable" || status === "improved") && hasSuccessfulPair) {
+      hasComparableScenario = true;
+    }
+
     summaries.push({ scenarioId, status, base, head });
   }
 
@@ -240,7 +244,7 @@ export function evaluateRuns(
     repository,
     baseRevision,
     headRevision,
-    conclusion: hasWarning ? "warning" : hasInconclusiveScenario || summaries.length === 0 ? "inconclusive" : "pass",
+    conclusion: hasWarning ? "warning" : hasComparableScenario ? "pass" : "inconclusive",
     findings,
     summaries,
     runs,

@@ -35,4 +35,14 @@ test("parseCodexJsonlTelemetry refuses truncated or incomplete evidence", () => 
     parseCodexJsonlTelemetry('{"type":"turn.completed","usage":{"input_tokens":1,"output_tokens":1}}', true),
     null,
   );
+  assert.equal(
+    parseCodexJsonlTelemetry(
+      '{"type":"turn.completed","usage":{"input_tokens":1,"output_tokens":1}}\nnot-json\n',
+    ),
+    null,
+  );
+  assert.equal(
+    parseCodexJsonlTelemetry('{"type":"turn.completed","usage":{"input_tokens":"1","output_tokens":1}}\n'),
+    null,
+  );
 });

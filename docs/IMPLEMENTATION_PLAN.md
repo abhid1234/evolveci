@@ -8,7 +8,7 @@
 - [x] Add exact-ref resolution and detached worktree lifecycle.
 - [x] Collect patch, test-file, and dependency metrics.
 - [x] Evaluate per-scenario threshold deltas.
-- [x] Render JSON and Markdown evidence.
+- [x] Render JSON, Markdown, and offline HTML evidence.
 - [x] Expose `validate` and `run` CLI commands.
 - [x] Complete clean-install and integration verification.
 

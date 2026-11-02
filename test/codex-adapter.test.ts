@@ -11,7 +11,7 @@ test("Codex adapter passes the prompt on stdin with a constrained invocation", a
   try {
     await writeFile(
       fakeCodex,
-      '#!/usr/bin/env node\nlet input = ""; for await (const chunk of process.stdin) input += chunk; process.stdout.write(JSON.stringify({ args: process.argv.slice(2), input }));\n',
+      '#!/usr/bin/env node\nlet input = ""; for await (const chunk of process.stdin) input += chunk; process.stdout.write(JSON.stringify({ type: "thread.started", args: process.argv.slice(2), input }) + "\\n" + JSON.stringify({ type: "turn.completed", usage: { input_tokens: 1, output_tokens: 1 } }) + "\\n");\n',
     );
     await chmod(fakeCodex, 0o755);
     const result = await runCodexAdapter({
@@ -23,7 +23,7 @@ test("Codex adapter passes the prompt on stdin with a constrained invocation", a
       timeoutMs: 5_000,
     });
     assert.equal(result.exitCode, 0);
-    const output = JSON.parse(result.stdout);
+    const output = JSON.parse(result.stdout.split("\n")[0] ?? "");
     assert.deepEqual(output.args, [
       "exec",
       "--ephemeral",
@@ -41,6 +41,26 @@ test("Codex adapter passes the prompt on stdin with a constrained invocation", a
       "-",
     ]);
     assert.equal(output.input, "add the next change");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("Codex adapter fails closed on terminal failures and incomplete JSONL", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "evolveci-codex-outcome-"));
+  try {
+    for (const [name, output, expected] of [
+      ["failed", '{"type":"turn.failed"}\n', /turn\.failed/],
+      ["incomplete", '{"type":"thread.started"}\n', /no completed turn/],
+      ["malformed", 'not-json\n', /malformed event/],
+    ] as const) {
+      const fakeCodex = path.join(root, `${name}.mjs`);
+      await writeFile(fakeCodex, `#!/usr/bin/env node\nprocess.stdout.write(${JSON.stringify(output)});\n`);
+      await chmod(fakeCodex, 0o755);
+      const result = await runCodexAdapter({ prompt: "task", cwd: root, codexBin: fakeCodex });
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, expected);
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
   }

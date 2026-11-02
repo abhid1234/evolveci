@@ -23,6 +23,33 @@ test("runCommand terminates timed-out processes", async () => {
   assert.notEqual(result.exitCode, 0);
 });
 
+test("runCommand cleans up descendant processes on POSIX", { skip: process.platform === "win32" }, async () => {
+  const result = await runCommand({
+    command: [
+      process.execPath,
+      "-e",
+      'const { spawn } = require("node:child_process"); const child = spawn(process.execPath, ["-e", "setTimeout(() => {}, 60000)"], { stdio: "ignore" }); child.unref(); process.stdout.write(String(child.pid));',
+    ],
+    cwd: process.cwd(),
+    timeoutMs: 5_000,
+  });
+  assert.equal(result.exitCode, 0);
+  const descendantPid = Number.parseInt(result.stdout, 10);
+  assert(Number.isSafeInteger(descendantPid));
+
+  let alive = true;
+  for (let attempt = 0; attempt < 20 && alive; attempt += 1) {
+    try {
+      process.kill(descendantPid, 0);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
+      alive = false;
+    }
+  }
+  assert.equal(alive, false, `descendant process ${descendantPid} survived command completion`);
+});
+
 test("runCommand can pass prompts over stdin without inheriting secrets", async () => {
   const result = await runCommand({
     command: [

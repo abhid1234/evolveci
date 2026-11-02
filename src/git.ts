@@ -36,7 +36,12 @@ export interface Worktree {
 export async function createWorktree(repo: string, revision: string): Promise<Worktree> {
   const parent = await mkdtemp(path.join(tmpdir(), "evolveci-"));
   const worktreePath = path.join(parent, "worktree");
-  await git(repo, ["worktree", "add", "--detach", "--quiet", worktreePath, revision]);
+  try {
+    await git(repo, ["worktree", "add", "--detach", "--quiet", worktreePath, revision]);
+  } catch (error) {
+    await rm(parent, { recursive: true, force: true });
+    throw error;
+  }
   let disposed = false;
   return {
     path: worktreePath,

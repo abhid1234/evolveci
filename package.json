@@ -8,6 +8,7 @@
   },
   "files": [
     "dist/src",
+    "docs",
     "schemas",
     "README.md",
     "CHANGELOG.md",
