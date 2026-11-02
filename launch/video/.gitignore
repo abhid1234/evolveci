@@ -1,3 +1,5 @@
 evolveci-silent.mp4
 narration.aiff
 qa-*.png
+vo-payload.json
+.vo-response.*

@@ -15,6 +15,8 @@ const required = [
   "launch/figures/blog-banner.png",
   "launch/video/evolveci-launch.mp4",
   "launch/video/captions.srt",
+  "launch/video/generate-elevenlabs-vo.sh",
+  "launch/video/music.m4a",
 ];
 
 const failures = [];

@@ -10,7 +10,11 @@ CHROME_BIN=/path/to/chrome \
 bash launch/video/render.sh
 ```
 
-The default voice is the local macOS `Samantha` voice. The mux applies a small pitch-preserving `atempo=1.04` adjustment so the narration ends before the 60-second master regardless of minor local speech-engine timing differences. Set `SAY_VOICE` to replace it, or swap `narration.aiff` with a human recording before the final mux. The quiet audio bed is synthesized during rendering, so no third-party music license is required.
+If the current narration or voice settings have changed, add `FORCE_VO=1`. A current ElevenLabs secret begins with `sk_`; an API key ID is not accepted by the service as a credential.
+
+The production voice is ElevenLabs **Will** (`bIHbv24MWmeRgasZH58o`) using `eleven_multilingual_v2` with stability `0.35`, similarity boost `0.8`, style `0.35`, and speaker boost enabled. [`generate-elevenlabs-vo.sh`](generate-elevenlabs-vo.sh) accepts `ELEVENLABS_API_KEY` or reads `ELEVENLABS_API_KEY_FILE` (default: `~/.claude/hooks/.elevenlabs-key`). The secret is never written to this repository.
+
+The render measures the generated MP3 and calculates a pitch-preserving tempo adjustment against a 58-second narration target, clamped to `0.9–1.1`. It then mixes the voice with the shared launch instrumental using gentle sidechain ducking and a final limiter. Set `FORCE_VO=1` only when the narration or voice settings changed; ordinary re-renders reuse the checked-in voice track and do not spend ElevenLabs characters again.
 
 ## QA gates
 
