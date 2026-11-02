@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -18,6 +18,7 @@ test("runComparison evaluates detached base and head worktrees", async () => {
   const repo = path.join(root, "repo");
   const tools = path.join(root, "tools");
   const output = path.join(root, "evidence");
+  const orderLog = path.join(root, "execution-order.log");
   await mkdir(repo);
   await mkdir(tools);
   try {
@@ -25,7 +26,8 @@ test("runComparison evaluates detached base and head worktrees", async () => {
     await writeFile(path.join(repo, "app.js"), 'export const value = "base";\n');
     await writeFile(
       path.join(tools, "agent.mjs"),
-      `import { writeFile } from "node:fs/promises";\n` +
+      `import { appendFile, writeFile } from "node:fs/promises";\n` +
+        `await appendFile(${JSON.stringify(orderLog)}, process.env.EVOLVECI_SIDE + ":" + process.env.EVOLVECI_ATTEMPT + "\\n");\n` +
         `await writeFile("future.js", "export const future = true;\\n");\n` +
         `if (process.env.EVOLVECI_SIDE === "head") await writeFile("coupling.js", "export const coupled = true;\\n");\n`,
     );
@@ -85,8 +87,15 @@ test("runComparison evaluates detached base and head worktrees", async () => {
     assert.equal(report.runs.length, 4);
     assert.equal(report.runs.find((run) => run.side === "base")?.metrics.filesChanged, 1);
     assert.equal(report.runs.find((run) => run.side === "head")?.metrics.filesChanged, 2);
+    assert.equal(await readFile(orderLog, "utf8"), "base:1\nhead:1\nhead:2\nbase:2\n");
     assert.match(await readFile(path.join(output, "report.md"), "utf8"), /EvolveCI: warning/);
     assert.doesNotMatch(await readFile(path.join(repo, "app.js"), "utf8"), /future/);
+    const sameEvidence = path.join(root, "same-evidence");
+    await assert.rejects(
+      () => runComparison({ repository: repo, base, head: base, config, outputDir: sameEvidence }),
+      /base and head must resolve to different revisions/,
+    );
+    await assert.rejects(() => access(sameEvidence), { code: "ENOENT" });
   } finally {
     await rm(root, { recursive: true, force: true });
   }

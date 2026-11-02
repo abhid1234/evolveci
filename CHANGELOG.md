@@ -24,5 +24,7 @@ All notable changes to EvolveCI are documented here. The format follows Keep a C
 - POSIX command execution now terminates descendant process groups on timeout and completion.
 - Codex JSONL outcomes and token telemetry fail closed when terminal or usage evidence is incomplete.
 - Release automation is idempotent, selects `next` for prereleases, verifies registry readback, and tests macOS and Windows compatibility.
+- Repeated pairs now alternate base/head execution order to reduce systematic warm-cache and machine-order bias.
+- Same-revision comparisons now fail closed before creating evidence output or detached worktrees.
 
 [0.1.0-rc.1]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0-rc.1

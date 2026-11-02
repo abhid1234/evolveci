@@ -187,6 +187,8 @@ The report is deliberately decomposable. Reviewers can see which scenario regres
 - Setup, agent, and verifier subprocesses do not inherit arbitrary environment secrets unless explicitly allowed.
 - Evidence contains command output and argv; never place credentials in prompts or command arguments, and review logs before sharing them.
 - Repeated runs use medians and become inconclusive when duration variance exceeds the configured limit.
+- Repeated pairs are counterbalanced: odd attempts run base then head, while even attempts run head then base to reduce systematic execution-order bias.
+- Base and head must resolve to different commits; EvolveCI rejects same-revision comparisons instead of emitting meaningless evidence.
 
 Worktree isolation is not a security sandbox. Before running untrusted agents or repositories, the next milestone is container or microVM isolation with explicit network, CPU, memory, and filesystem policies.
 
