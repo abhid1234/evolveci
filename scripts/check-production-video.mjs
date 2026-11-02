@@ -41,7 +41,15 @@ if (failures.length === 0) {
     if (metadata.narrationSha256 !== sha256(narrationFile)) failures.push("voiceover narration hash is stale");
     if (metadata.audioSha256 !== sha256(voiceFile)) failures.push("voiceover audio hash does not match the MP3");
     if (metadata.bytes !== fs.statSync(voiceFile).size) failures.push("voiceover byte count does not match the MP3");
-    if (!(metadata.durationSeconds > 45 && metadata.durationSeconds < 80)) failures.push("voiceover duration is outside the expected range");
+    if (!(metadata.durationSeconds > 45 && metadata.durationSeconds < 80)) {
+      failures.push("voiceover duration is outside the expected range");
+    } else {
+      const tempo = Math.max(0.9, Math.min(1.1, metadata.durationSeconds / 64));
+      const voiceEnd = 0.5 + metadata.durationSeconds / tempo;
+      if (voiceEnd < 62 || voiceEnd > 65.5) {
+        failures.push(`tempo-adjusted voice ends at ${voiceEnd.toFixed(2)}s; expected 62.00–65.50s`);
+      }
+    }
   }
 
   const probe = spawnSync("ffprobe", [
@@ -64,6 +72,22 @@ if (failures.length === 0) {
     if (audio?.codec_name !== "aac" || audio.sample_rate !== "44100" || audio.channels !== 2) {
       failures.push("launch master must contain 44.1 kHz stereo AAC audio");
     }
+  }
+
+  const volume = spawnSync("ffmpeg", [
+    "-i", masterFile,
+    "-map", "0:a:0",
+    "-af", "volumedetect",
+    "-f", "null",
+    "-",
+  ], { encoding: "utf8" });
+  if (volume.error || volume.status !== 0) {
+    failures.push(`ffmpeg volume check failed: ${volume.error?.message ?? volume.stderr.trim()}`);
+  } else {
+    const mean = Number(volume.stderr.match(/mean_volume:\s*(-?[\d.]+) dB/)?.[1]);
+    const peak = Number(volume.stderr.match(/max_volume:\s*(-?[\d.]+) dB/)?.[1]);
+    if (!Number.isFinite(mean) || mean < -24 || mean > -10) failures.push(`mix mean volume is ${mean} dB; expected -24 to -10 dB`);
+    if (!Number.isFinite(peak) || peak < -3 || peak > -0.3) failures.push(`mix peak volume is ${peak} dB; expected -3 to -0.3 dB`);
   }
 }
 
