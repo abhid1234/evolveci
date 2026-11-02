@@ -44,6 +44,7 @@ const payload = {
     stability: 0.35,
     similarity_boost: 0.8,
     style: 0.35,
+    speed: 1.2,
     use_speaker_boost: true,
   },
 };
@@ -93,6 +94,7 @@ const metadata = {
     stability: payload.voice_settings.stability,
     similarityBoost: payload.voice_settings.similarity_boost,
     style: payload.voice_settings.style,
+    speed: payload.voice_settings.speed,
     useSpeakerBoost: payload.voice_settings.use_speaker_boost,
   },
   durationSeconds: Number(process.env.DURATION),

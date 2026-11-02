@@ -41,7 +41,7 @@ if (failures.length === 0) {
       if (metadata[key] !== value) failures.push(`voiceover metadata ${key} must be ${value}`);
     }
     const settings = metadata.settings ?? {};
-    if (settings.stability !== 0.35 || settings.similarityBoost !== 0.8 || settings.style !== 0.35 || settings.useSpeakerBoost !== true) {
+    if (settings.stability !== 0.35 || settings.similarityBoost !== 0.8 || settings.style !== 0.35 || settings.speed !== 1.2 || settings.useSpeakerBoost !== true) {
       failures.push("voiceover metadata does not match the approved Will settings");
     }
     if (metadata.narrationSha256 !== sha256(narrationFile)) failures.push("voiceover narration hash is stale");

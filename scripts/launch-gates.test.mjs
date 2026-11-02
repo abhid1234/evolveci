@@ -55,7 +55,11 @@ printf '200'
     assert.doesNotMatch(argv, new RegExp(`${secret}|xi-api-key`, "i"));
     assert.doesNotMatch(`${result.stdout}${result.stderr}`, new RegExp(secret));
     assert.match(curlConfig, new RegExp(`xi-api-key: ${secret}`));
-    assert.doesNotMatch(await readFile(path.join(directory, "voiceover-metadata.json"), "utf8"), new RegExp(secret));
+    const payload = JSON.parse(await readFile(path.join(directory, "vo-payload.json"), "utf8"));
+    const metadata = JSON.parse(await readFile(path.join(directory, "voiceover-metadata.json"), "utf8"));
+    assert.equal(payload.voice_settings.speed, 1.2);
+    assert.equal(metadata.settings.speed, 1.2);
+    assert.doesNotMatch(JSON.stringify(metadata), new RegExp(secret));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -192,7 +196,7 @@ async function writeVideoFixture(directory) {
     voiceName: "Will",
     voiceId: "bIHbv24MWmeRgasZH58o",
     modelId: "eleven_multilingual_v2",
-    settings: { stability: 0.35, similarityBoost: 0.8, style: 0.35, useSpeakerBoost: true },
+    settings: { stability: 0.35, similarityBoost: 0.8, style: 0.35, speed: 1.2, useSpeakerBoost: true },
     durationSeconds: 64,
     bytes: files.voice.length,
     narrationSha256: sha256(files.narration),
