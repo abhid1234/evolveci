@@ -124,13 +124,21 @@ export interface ComparisonOptions {
 export async function runComparison(options: ComparisonOptions): Promise<ComparisonReport> {
   const baseRevision = await resolveRevision(options.repository, options.base);
   const headRevision = await resolveRevision(options.repository, options.head);
+  if (baseRevision === headRevision) {
+    throw new Error("base and head must resolve to different revisions");
+  }
   await mkdir(options.outputDir, { recursive: true });
 
   const runs: ScenarioRun[] = [];
   for (const scenario of options.config.scenarios) {
     for (let attempt = 1; attempt <= options.config.execution.repetitions; attempt += 1) {
-      runs.push(await runScenario(options.repository, baseRevision, "base", scenario, attempt, options.config, options.outputDir));
-      runs.push(await runScenario(options.repository, headRevision, "head", scenario, attempt, options.config, options.outputDir));
+      const pair: Array<readonly [string, RunSide]> =
+        attempt % 2 === 1
+          ? [[baseRevision, "base"], [headRevision, "head"]]
+          : [[headRevision, "head"], [baseRevision, "base"]];
+      for (const [revision, side] of pair) {
+        runs.push(await runScenario(options.repository, revision, side, scenario, attempt, options.config, options.outputDir));
+      }
     }
   }
 

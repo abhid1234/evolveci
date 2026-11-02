@@ -30,7 +30,7 @@
 - [x] Add normalized Codex token and turn telemetry.
 - [ ] Add cost estimates only after model identity and pricing can be verified.
 - [ ] Add a Claude Code adapter.
-- [x] Add run repetition, medians, dispersion, and confidence-based inconclusive results.
+- [x] Add run repetition, counterbalanced pair ordering, medians, dispersion, and confidence-based inconclusive results.
 - [ ] Add retry classification without hiding failures.
 
 ## Milestone 4 — isolation and CI

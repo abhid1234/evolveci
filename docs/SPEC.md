@@ -53,7 +53,7 @@ Paired runs must use the same:
 - verifier executable and arguments;
 - process environment except for revision, side, and worktree metadata.
 
-The alpha runs pairs sequentially to avoid machine contention contaminating duration. Each repeat runs base and then head. Reports use medians, expose success rates, and mark a scenario inconclusive when duration coefficient of variation exceeds the configured limit. Future versions may randomize order or parallelize pairs only when resource isolation is available.
+The alpha runs pairs sequentially to avoid machine contention contaminating duration. It counterbalances order deterministically: odd attempts run base then head, and even attempts run head then base. Reports use medians, expose success rates, and mark a scenario inconclusive when duration coefficient of variation exceeds the configured limit. Future versions may randomize order or parallelize pairs only when resource isolation is available.
 
 ## Result semantics
 
@@ -66,6 +66,7 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 ## Failure handling
 
 - Invalid configuration fails before worktrees are created.
+- Identical resolved base and head revisions fail before output or worktrees are created.
 - Setup failure aborts the run because subsequent evidence would not be comparable.
 - Agent failure records evidence and skips verification.
 - Verifier failure records a failed scenario.
