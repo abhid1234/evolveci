@@ -16,7 +16,7 @@ npm run release:check
 npm pack --dry-run --cache /tmp/evolveci-npm-cache
 ```
 
-Inspect the tarball manifest. It must contain compiled CLI files, schemas, README, changelog, license, and package metadata. It must not contain tests, demo worktrees, generated evidence, credentials, or local configuration.
+The release gate inspects the tarball manifest, installs that tarball into a clean temporary consumer, and runs its version and help commands. The manifest must contain compiled CLI files, schemas, README, changelog, license, and package metadata. It must not contain tests, demo worktrees, generated evidence, credentials, or local configuration.
 
 ## Bootstrap the package once
 
