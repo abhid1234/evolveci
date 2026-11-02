@@ -14,6 +14,9 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`LAUNCH-BRIEF.md`](LAUNCH-BRIEF.md) | One-page positioning, proof, audience, and launch gate | Ready |
 | [`demo-script.md`](demo-script.md) | Two-minute terminal demo run-of-show | Ready |
 | [`release-copy.md`](release-copy.md) | Draft GitHub release title and notes | Ready |
+| [`FAQ.md`](FAQ.md) | Accurate answers for launch comments and objections | Ready |
+| [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | Figure alt text, video description, and caption checks | Ready |
+| [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md) | Exact morning publish order and independent readbacks | Ready |
 | [`figures/`](figures/) | Five light-theme launch figures and 1100×220 banner | Rendered and visually verified |
 | [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 60-second MP4 | Rendered and verified |
 
