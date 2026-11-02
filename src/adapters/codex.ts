@@ -5,6 +5,7 @@ export interface CodexAdapterOptions {
   prompt: string;
   cwd: string;
   codexBin?: string;
+  codexCommand?: CommandSpec;
   model?: string;
   profile?: string;
   timeoutMs?: number;
@@ -51,8 +52,12 @@ function validateJsonlOutcome(result: CommandResult): CommandResult {
 
 export async function runCodexAdapter(options: CodexAdapterOptions): Promise<CommandResult> {
   if (options.prompt.trim().length === 0) throw new Error("Codex adapter requires a non-empty prompt on stdin");
-  const command: string[] = [
-    options.codexBin ?? "codex",
+  if (options.codexBin && options.codexCommand) {
+    throw new Error("Codex adapter accepts either codexBin or codexCommand, not both");
+  }
+  const executable: CommandSpec = options.codexCommand ?? [options.codexBin ?? "codex"];
+  const command: [string, ...string[]] = [
+    ...executable,
     "exec",
     "--ephemeral",
     "--sandbox",
@@ -67,7 +72,7 @@ export async function runCodexAdapter(options: CodexAdapterOptions): Promise<Com
   if (options.profile) command.push("--profile", safeIdentifier(options.profile, "profile"));
   command.push("-");
   const result = await runCommand({
-    command: command as unknown as CommandSpec,
+    command,
     cwd: options.cwd,
     stdin: options.prompt,
     ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),

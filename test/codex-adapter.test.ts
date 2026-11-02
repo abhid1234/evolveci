@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -13,11 +13,10 @@ test("Codex adapter passes the prompt on stdin with a constrained invocation", a
       fakeCodex,
       '#!/usr/bin/env node\nlet input = ""; for await (const chunk of process.stdin) input += chunk; process.stdout.write(JSON.stringify({ type: "thread.started", args: process.argv.slice(2), input }) + "\\n" + JSON.stringify({ type: "turn.completed", usage: { input_tokens: 1, output_tokens: 1 } }) + "\\n");\n',
     );
-    await chmod(fakeCodex, 0o755);
     const result = await runCodexAdapter({
       prompt: "add the next change",
       cwd: root,
-      codexBin: fakeCodex,
+      codexCommand: [process.execPath, fakeCodex],
       model: "gpt-test",
       profile: "ci",
       timeoutMs: 5_000,
@@ -56,8 +55,11 @@ test("Codex adapter fails closed on terminal failures and incomplete JSONL", asy
     ] as const) {
       const fakeCodex = path.join(root, `${name}.mjs`);
       await writeFile(fakeCodex, `#!/usr/bin/env node\nprocess.stdout.write(${JSON.stringify(output)});\n`);
-      await chmod(fakeCodex, 0o755);
-      const result = await runCodexAdapter({ prompt: "task", cwd: root, codexBin: fakeCodex });
+      const result = await runCodexAdapter({
+        prompt: "task",
+        cwd: root,
+        codexCommand: [process.execPath, fakeCodex],
+      });
       assert.equal(result.exitCode, 1);
       assert.match(result.stderr, expected);
     }
@@ -71,5 +73,15 @@ test("Codex adapter rejects empty prompts and unsafe identifiers", async () => {
   await assert.rejects(
     () => runCodexAdapter({ prompt: "task", cwd: process.cwd(), model: "model; echo unsafe" }),
     /unsupported characters/,
+  );
+  await assert.rejects(
+    () =>
+      runCodexAdapter({
+        prompt: "task",
+        cwd: process.cwd(),
+        codexBin: "codex",
+        codexCommand: ["node", "wrapper.mjs"],
+      }),
+    /either codexBin or codexCommand/,
   );
 });

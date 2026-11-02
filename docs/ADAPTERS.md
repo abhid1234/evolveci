@@ -47,6 +47,8 @@ codex exec --ephemeral --sandbox workspace-write --cd <worktree> --color never -
 
 It does not pass `--dangerously-bypass-approvals-and-sandbox` or add writable directories outside the scenario worktree.
 
+Programmatic integrations may provide `codexCommand` as a non-empty argv prefix when Codex is launched through a runtime or wrapper. For example, `[process.execPath, "codex-wrapper.mjs"]` is portable across operating systems. Set either `codexCommand` or `codexBin`, never both.
+
 Set `telemetryFormat: codex-jsonl` to parse exact `turn.completed.usage` records. EvolveCI records input, cached input, cache-write input, output, and reasoning-output token fields when present. `totalTokens` is input plus output because cached tokens are already included in input and reasoning tokens are already included in output. If the stream is truncated or contains no completed turn, telemetry is unavailable rather than guessed.
 
 ## Adding another agent
