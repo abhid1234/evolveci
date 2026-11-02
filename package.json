@@ -27,7 +27,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "npm run version:check && npm run static:check && npm run launch:check && npm run build && npm test",
+    "check": "npm run version:check && npm run static:check && npm run docs:check && npm run launch:check && npm run build && npm test",
+    "docs:check": "node scripts/check-doc-links.mjs",
     "launch:check": "node scripts/check-launch-kit.mjs",
     "launch:public-check": "node scripts/check-public-launch-manifest.mjs",
     "launch:production-check": "node scripts/check-production-video.mjs",
