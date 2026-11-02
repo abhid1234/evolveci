@@ -64,7 +64,7 @@ setup: ["npm", "ci"]
 
 agent:
   # Commands are argv arrays. EvolveCI never interpolates them through a shell.
-  command: ["node", "./tools/evolveci-codex-adapter.mjs"]
+  command: ["evolveci", "adapter", "codex"]
   timeoutMs: 600000
   # Default-deny inherited environment. Allow only credentials the adapter needs.
   inheritEnvironment: false
@@ -105,6 +105,21 @@ The agent receives a minimal runtime environment plus these variables:
 | `EVOLVECI_ATTEMPT` | One-based repeat number |
 
 The CLI does not expand `$EVOLVECI_PROMPT` inside command arguments. Agent adapters read the prompt from stdin or the environment. This avoids shell injection and keeps prompts containing quotes or newlines intact. Agent processes inherit only a small OS allowlist by default; add credential names to `passEnvironment` only when required.
+
+### Built-in Codex adapter
+
+The package ships a vendor-specific adapter without coupling the comparison engine to Codex:
+
+```yaml
+agent:
+  command: ["evolveci", "adapter", "codex", "--model", "gpt-6-astra"]
+  promptTransport: stdin
+  inheritEnvironment: false
+```
+
+It invokes `codex exec` in ephemeral, workspace-write mode, streams the scenario through stdin, and emits Codex JSONL into the evidence logs. Authentication continues to use the normal Codex home directory. The adapter never enables the dangerous sandbox-bypass flag.
+
+See [the adapter contract](docs/ADAPTERS.md) to integrate another coding agent.
 
 ## Run
 
