@@ -4,15 +4,19 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const videoDir = path.join(root, "launch", "video");
+const videoDir = process.env.EVOLVECI_VIDEO_DIR ? path.resolve(process.env.EVOLVECI_VIDEO_DIR) : path.join(root, "launch", "video");
+const ffprobeBin = process.env.FFPROBE_BIN || "ffprobe";
+const ffmpegBin = process.env.FFMPEG_BIN || "ffmpeg";
 const narrationFile = path.join(videoDir, "narration.txt");
 const voiceFile = path.join(videoDir, "evolveci-vo.mp3");
 const metadataFile = path.join(videoDir, "voiceover-metadata.json");
 const masterFile = path.join(videoDir, "evolveci-launch.mp4");
+const musicFile = path.join(videoDir, "music.m4a");
+const silentFile = path.join(videoDir, "evolveci-silent.mp4");
 const failures = [];
 const sha256 = (file) => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
-for (const file of [narrationFile, voiceFile, metadataFile, masterFile]) {
+for (const file of [narrationFile, voiceFile, metadataFile, masterFile, musicFile, silentFile]) {
   if (!fs.existsSync(file)) failures.push(`missing ${path.relative(root, file)}`);
 }
 
@@ -41,6 +45,11 @@ if (failures.length === 0) {
     if (metadata.narrationSha256 !== sha256(narrationFile)) failures.push("voiceover narration hash is stale");
     if (metadata.audioSha256 !== sha256(voiceFile)) failures.push("voiceover audio hash does not match the MP3");
     if (metadata.bytes !== fs.statSync(voiceFile).size) failures.push("voiceover byte count does not match the MP3");
+    const render = metadata.render ?? {};
+    if (render.voiceSha256 !== sha256(voiceFile)) failures.push("production render does not reference the current Will MP3");
+    if (render.musicSha256 !== sha256(musicFile)) failures.push("production render does not reference the current music track");
+    if (render.silentVideoSha256 !== sha256(silentFile)) failures.push("production render does not reference the current silent master");
+    if (render.masterSha256 !== sha256(masterFile)) failures.push("production render hash does not match the checked-in MP4");
     if (!(metadata.durationSeconds > 45 && metadata.durationSeconds < 80)) {
       failures.push("voiceover duration is outside the expected range");
     } else {
@@ -52,7 +61,7 @@ if (failures.length === 0) {
     }
   }
 
-  const probe = spawnSync("ffprobe", [
+  const probe = spawnSync(ffprobeBin, [
     "-v", "error",
     "-show_entries", "format=duration:stream=codec_name,codec_type,width,height,r_frame_rate,sample_rate,channels",
     "-of", "json",
@@ -61,20 +70,27 @@ if (failures.length === 0) {
   if (probe.error || probe.status !== 0) {
     failures.push(`ffprobe failed: ${probe.error?.message ?? probe.stderr.trim()}`);
   } else {
-    const media = JSON.parse(probe.stdout);
-    const duration = Number(media.format?.duration);
-    const video = media.streams?.find((stream) => stream.codec_type === "video");
-    const audio = media.streams?.find((stream) => stream.codec_type === "audio");
-    if (Math.abs(duration - 66) > 0.05) failures.push(`launch master duration is ${duration}, expected 66 seconds`);
-    if (video?.codec_name !== "h264" || video.width !== 1280 || video.height !== 720 || video.r_frame_rate !== "24/1") {
-      failures.push("launch master must be 1280x720 H.264 at 24 fps");
+    let media;
+    try {
+      media = JSON.parse(probe.stdout);
+    } catch (error) {
+      failures.push(`ffprobe returned invalid JSON: ${error.message}`);
     }
-    if (audio?.codec_name !== "aac" || audio.sample_rate !== "44100" || audio.channels !== 2) {
-      failures.push("launch master must contain 44.1 kHz stereo AAC audio");
+    if (media) {
+      const duration = Number(media.format?.duration);
+      const video = media.streams?.find((stream) => stream.codec_type === "video");
+      const audio = media.streams?.find((stream) => stream.codec_type === "audio");
+      if (!Number.isFinite(duration) || Math.abs(duration - 66) > 0.05) failures.push(`launch master duration is ${duration}, expected 66 seconds`);
+      if (video?.codec_name !== "h264" || video.width !== 1280 || video.height !== 720 || video.r_frame_rate !== "24/1") {
+        failures.push("launch master must be 1280x720 H.264 at 24 fps");
+      }
+      if (audio?.codec_name !== "aac" || audio.sample_rate !== "44100" || audio.channels !== 2) {
+        failures.push("launch master must contain 44.1 kHz stereo AAC audio");
+      }
     }
   }
 
-  const volume = spawnSync("ffmpeg", [
+  const volume = spawnSync(ffmpegBin, [
     "-i", masterFile,
     "-map", "0:a:0",
     "-af", "volumedetect",
@@ -96,4 +112,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Production video verified: ElevenLabs Will metadata, source hashes, and 66-second media master agree.");
+console.log("Production video verified: ElevenLabs Will metadata, render provenance, and 66-second media master agree.");

@@ -19,11 +19,11 @@ Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9
 
 | Surface | URL | Current state |
 |---|---|---|
-| Code | https://github.com/abhid1234/evolveci | Live |
-| CI proof | https://github.com/abhid1234/evolveci/pull/5/checks | Live and green on the current PR head |
+| Code | https://github.com/abhid1234/evolveci | LIVE_VERIFIED: repository reachable |
+| CI proof | https://github.com/abhid1234/evolveci/pull/5/checks | LIVE_VERIFIED: current PR head green |
 | npm | https://www.npmjs.com/package/@avee1234/evolveci | **Pending first publication; registry returned 404 on 2026-11-01 PT** |
 | GitHub release | https://github.com/abhid1234/evolveci/releases | **No release yet** |
-| Demo / playground | https://github.com/abhid1234/evolveci#run-the-deterministic-demo | Live and reproducible from the repository |
+| Demo / playground | https://github.com/abhid1234/evolveci#run-the-deterministic-demo | LIVE_VERIFIED: repository demo instructions reachable |
 | Substack | TBD | **Pending** |
 
 ## Claims deliberately excluded

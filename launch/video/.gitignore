@@ -1,5 +1,8 @@
-evolveci-silent.mp4
 narration.aiff
+evolveci-preview.mp4
 qa-*.png
 vo-payload.json
 .vo-response.*
+.vo-metadata.*
+.voice-backup.*
+.render.*

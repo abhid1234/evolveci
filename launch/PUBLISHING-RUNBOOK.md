@@ -24,7 +24,7 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 
 - Confirm the canonical repository and deterministic demo instructions.
 - Confirm the canonical deterministic demo link resolves to the README instructions.
-- Replace every `TBD` or pending link in [`FACT-CHECK.md`](FACT-CHECK.md), the essay, and social drafts. The video already uses stable repository, npm package, and Substack publication destinations, so it does not need to be recaptured after publication.
+- Replace every `TBD` or pending link in [`FACT-CHECK.md`](FACT-CHECK.md), the essay, and social drafts. Use the exact versioned GitHub release URL and the final `abhid.substack.com/p/...` essay URL. After opening each required surface signed out, prefix its ledger state with the exact `LIVE_VERIFIED:` marker. The video already uses stable repository, npm package, and Substack publication destinations, so it does not need to be recaptured after publication.
 - Run `npm run launch:check` after the replacements.
 - Run `npm run launch:public-check`; it must remain red until every required row in the fact ledger is public.
 
