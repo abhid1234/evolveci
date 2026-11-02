@@ -12,10 +12,12 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 
 ## 2. Publish the package and release
 
-- Publish through the configured trusted-publisher workflow.
+- Confirm the public registry still returns 404 for `@avee1234/evolveci`; this proves the package needs a one-time bootstrap publication.
+- From the clean, tagged `v0.1.0` checkout, authenticate with npm account 2FA and run `npm publish --access public --provenance=false`. The explicit override is required because a local bootstrap publish cannot produce GitHub Actions provenance.
 - Read `@avee1234/evolveci` directly from the public npm registry.
 - Install the exact published version in a temporary directory and run `evolveci --version`.
-- Create the GitHub release from [`release-copy.md`](release-copy.md) only after npm readback succeeds.
+- Configure npm trusted publishing for owner `abhid1234`, repository `evolveci`, workflow `release.yml`, and environment `npm` so later releases publish with OIDC provenance.
+- Create the GitHub release from [`release-copy.md`](release-copy.md) only after npm readback succeeds. The idempotent workflow will detect the existing `0.1.0`, skip a duplicate publish, and verify registry readback.
 - Verify the release page, assets, tag, and commit independently.
 
 ## 3. Establish public destinations

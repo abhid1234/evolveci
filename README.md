@@ -178,7 +178,7 @@ The report is deliberately decomposable. Reviewers can see which scenario regres
 
 Failed attempts remain failures. EvolveCI classifies timeouts and transient termination or resource-exhaustion errors as retryable, while deterministic crashes, nonzero exits, and configuration-related launch failures are terminal. It reports both counts per side, but never reruns an attempt automatically or removes it from the success rate. Logs are persisted before metric collection, and unavailable metrics are represented as `null` rather than fabricated zeroes, so malformed output from a failed attempt cannot erase or misstate its evidence.
 
-Machine consumers should choose the immutable schema matching `schemaVersion`: [`schemas/report.schema.json`](schemas/report.schema.json) for v1 or [`schemas/report-v2.schema.json`](schemas/report-v2.schema.json) for v2. EvolveCI `0.1.0-rc.2` emits v2 reports while continuing to package the v1 validator for stored evidence.
+Machine consumers should choose the immutable schema matching `schemaVersion`: [`schemas/report.schema.json`](schemas/report.schema.json) for v1 or [`schemas/report-v2.schema.json`](schemas/report-v2.schema.json) for v2. EvolveCI `0.1.0` emits v2 reports while continuing to package the v1 validator for stored evidence.
 
 ## Safety boundaries
 

@@ -36,12 +36,12 @@ A repository owns its scenarios. Each one contains a prompt, a verifier command,
 
 For every scenario, EvolveCI:
 
-1. resolves base and head to exact commits;
-2. creates a detached worktree for each side;
-3. runs the same setup, agent command, prompt, timeout, and verifier policy;
-4. records whether the probe succeeded and what patch it required;
-5. repeats the pair in counterbalanced order;
-6. reports medians, variability, and any configured regression.
+- resolves base and head to exact commits;
+- creates a detached worktree for each side;
+- runs the same setup, agent command, prompt, timeout, and verifier policy;
+- records whether the probe succeeded and what patch it required;
+- repeats the pair in counterbalanced order;
+- reports medians, variability, and any configured regression.
 
 The evidence bundle includes JSON, Markdown, an offline HTML report, changed paths, and raw command logs. It measures patch size, churn, test files, dependencies, duration, and exact token usage when an adapter supplies complete telemetry.
 
@@ -95,7 +95,7 @@ npm run demo
 
 It writes the JSON, Markdown, HTML, and raw evidence under `demo/output/`.
 
-The package is currently a release candidate and has not yet been published to npm. Until the registry readback is live, use the repository rather than a speculative install command.
+Version `0.1.0` is prepared but has not yet been published to npm. Until the registry readback is live, use the repository rather than a speculative install command.
 
 The code, schemas, demo, and limitations are all here:
 
@@ -104,4 +104,3 @@ The code, schemas, demo, and limitations are all here:
 - [Green cross-platform CI](https://github.com/abhid1234/evolveci/actions/runs/41392669881?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 
 It is rough and early. I would especially like people to poke holes in the scenario model: what would make a future-change probe fair enough to trust in your repository?
-

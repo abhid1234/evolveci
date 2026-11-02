@@ -4,7 +4,7 @@ Draft only. Confirm the final version and tag against `package.json`, `package-l
 
 ## Suggested title
 
-`v0.1.0-rc.2 — executable alpha for counterfactual CI`
+`v0.1.0 — executable alpha for counterfactual CI`
 
 ## Suggested body
 

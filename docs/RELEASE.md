@@ -20,13 +20,15 @@ The release gate inspects the tarball manifest, installs that tarball into a cle
 
 ## Bootstrap the package once
 
-Trusted-publisher configuration requires an existing npm package. Publish the first release candidate manually from the clean, tagged repository using account 2FA:
+Trusted-publisher configuration requires an existing npm package. Publish the first version manually from the clean, tagged repository using account 2FA:
 
 ```bash
-npm publish --access public --provenance=false --tag next
+npm login --auth-type=web
+npm whoami
+npm publish --access public --provenance=false
 ```
 
-Local npm publication cannot create GitHub Actions provenance. The explicit `--provenance=false` overrides the package default for this one bootstrap only, and `--tag next` prevents a release candidate from replacing the stable `latest` tag. Immediately verify the registry readback below. Then configure the npm trusted publisher and remove any temporary automation credential. Never put an OTP or token in an issue, commit, workflow, or chat.
+Local npm publication cannot create GitHub Actions provenance. The explicit `--provenance=false` overrides the package default for this one bootstrap only. Immediately verify the registry readback below. Then configure the npm trusted publisher and remove any temporary automation credential. Never put an OTP or token in an issue, commit, workflow, or chat.
 
 ## Publish subsequent releases through trusted publishing
 
