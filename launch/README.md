@@ -7,11 +7,11 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | Artifact | Purpose | Status |
 |---|---|---|
 | [`blog-evolveci.md`](blog-evolveci.md) | Canonical Substack essay source | Ready for editorial review |
-| `blog-evolveci.html` | One-paste Substack HTML with embedded figures | Generated after figures render |
+| [`blog-evolveci-substack.html`](blog-evolveci-substack.html) | One-paste Substack HTML with three embedded figures | Ready |
 | [`launch-posts.md`](launch-posts.md) | X, LinkedIn, HN, Reddit, and Product Hunt copy | Ready for editorial review |
 | [`launch-evolveci.html`](launch-evolveci.html) | Copy-friendly launch control room | Ready |
 | [`FACT-CHECK.md`](FACT-CHECK.md) | Claim ledger and public-surface readiness | Ready |
-| `figures/` | Five light-theme launch figures and banner | Production pass pending |
+| [`figures/`](figures/) | Five light-theme launch figures and 1100×220 banner | Rendered and visually verified |
 | `video/` | Script, deterministic animation, capture, and mux files | Production pass pending |
 
 ## Launch sequence
@@ -21,7 +21,7 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 3. Verify the npm registry response independently.
 4. Create or confirm the public demo URL.
 5. Replace the two pending links identified in [`FACT-CHECK.md`](FACT-CHECK.md).
-6. Paste `blog-evolveci.html` into Substack, upload the video, and verify every public link.
+6. Paste `blog-evolveci-substack.html` into Substack, upload the video, and verify every public link.
 7. Post manually. Nothing in this directory auto-posts.
 
 ## Voice and positioning
@@ -31,4 +31,3 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 - Call EvolveCI an executable alpha and a weekend experiment, not a production oracle.
 - Say explicitly that maintainers choose the probes and EvolveCI does not predict the future.
 - Treat `retryable` as diagnostic evidence. The tool never silently reruns or hides a failure.
-
