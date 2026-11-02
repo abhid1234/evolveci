@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KEY_FILE="${ELEVENLABS_API_KEY_FILE:-/Users/abhijitdas/.claude/hooks/.elevenlabs-key}"
+KEY_FILE="${ELEVENLABS_API_KEY_FILE:-$HOME/.claude/hooks/.elevenlabs-key}"
 VOICE_ID="${ELEVENLABS_VOICE_ID:-bIHbv24MWmeRgasZH58o}"
 MODEL_ID="eleven_multilingual_v2"
 OUTPUT_FILE="$SCRIPT_DIR/evolveci-vo.mp3"
@@ -19,7 +19,11 @@ else
 fi
 
 if [[ "$api_key" != sk_* ]]; then
-  echo "The stored ElevenLabs value is not a current secret key. Create a new key in ElevenLabs; current secrets begin with sk_." >&2
+  if [[ ${#api_key} -eq 64 ]]; then
+    echo "The stored ElevenLabs value looks like an API key ID, not the secret. Create a key in ElevenLabs and copy the one-time sk_ value." >&2
+  else
+    echo "The stored ElevenLabs value is not a current secret key. Create a new key in ElevenLabs; current secrets begin with sk_." >&2
+  fi
   exit 2
 fi
 

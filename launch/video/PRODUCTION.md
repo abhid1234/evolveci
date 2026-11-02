@@ -12,6 +12,16 @@ bash launch/video/render.sh
 
 If the current narration or voice settings have changed, add `FORCE_VO=1`. A current ElevenLabs secret begins with `sk_`; an API key ID is not accepted by the service as a credential.
 
+To create the credential, open **ElevenLabs → Developers → API keys**, create a key named `EvolveCI launch`, and copy the one-time secret value rather than the key ID shown later in the table. Store it locally with owner-only permissions:
+
+```bash
+umask 077
+pbpaste > ~/.claude/hooks/.elevenlabs-key
+chmod 600 ~/.claude/hooks/.elevenlabs-key
+```
+
+The generator validates the credential shape before making a paid synthesis request and explains the common key-ID mistake without printing either value.
+
 The production voice is ElevenLabs **Will** (`bIHbv24MWmeRgasZH58o`) using `eleven_multilingual_v2` with stability `0.35`, similarity boost `0.8`, style `0.35`, and speaker boost enabled. [`generate-elevenlabs-vo.sh`](generate-elevenlabs-vo.sh) accepts `ELEVENLABS_API_KEY` or reads `ELEVENLABS_API_KEY_FILE` (default: `~/.claude/hooks/.elevenlabs-key`). The secret is never written to this repository.
 
 The render measures the generated MP3 and calculates a pitch-preserving tempo adjustment against a 64-second narration target, clamped to `0.9–1.1`. It then mixes the voice with the shared launch instrumental using gentle sidechain ducking and a final limiter. Set `FORCE_VO=1` only when the narration or voice settings changed; ordinary re-renders reuse the checked-in voice track and do not spend ElevenLabs characters again. For an audio-only remux, add `SKIP_VIDEO_CAPTURE=1` to reuse `evolveci-silent.mp4`.
