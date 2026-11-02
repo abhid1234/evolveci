@@ -104,14 +104,18 @@ test("runComparison evaluates detached base and head worktrees", async () => {
         'else { await writeFile("future.js", "export const future = true;\\n"); await writeFile("package.json", "{invalid json\\n"); }\n',
     );
     const failureOutput = path.join(root, "failure-evidence");
+    const failureConfig: EvolveConfig = { ...singleAttemptConfig };
+    // Keep the deliberately tiny timeout focused on the hanging agent. A cold
+    // setup-process launch is unrelated to this failure-classification check.
+    delete failureConfig.setup;
+    failureConfig.scenarios = [
+      { ...singleAttemptConfig.scenarios[0]!, verify: [path.join(tools, "missing-verifier")], timeoutMs: 200 },
+    ];
     const failureReport = await runComparison({
       repository: repo,
       base,
       head: "HEAD",
-      config: {
-        ...singleAttemptConfig,
-        scenarios: [{ ...singleAttemptConfig.scenarios[0]!, verify: [path.join(tools, "missing-verifier")], timeoutMs: 200 }],
-      },
+      config: failureConfig,
       outputDir: failureOutput,
     });
     assert.equal(failureReport.conclusion, "inconclusive");
