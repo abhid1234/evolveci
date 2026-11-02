@@ -12,15 +12,13 @@ bash launch/video/render.sh
 
 If the current narration or voice settings have changed, add `FORCE_VO=1`. A current ElevenLabs secret begins with `sk_`; an API key ID is not accepted by the service as a credential.
 
-To create the credential, open **ElevenLabs → Developers → API keys**, create a key named `EvolveCI launch`, and copy the one-time secret value rather than the key ID shown later in the table. Store it locally with owner-only permissions:
+To create the credential, open **ElevenLabs → Developers → API keys**, create a key named `EvolveCI launch`, and copy the one-time secret value rather than the key ID shown later in the table. Store it through the checked-in validator; the secret travels over standard input rather than a command argument:
 
 ```bash
-umask 077
-pbpaste > ~/.claude/hooks/.elevenlabs-key
-chmod 600 ~/.claude/hooks/.elevenlabs-key
+pbpaste | bash launch/video/install-elevenlabs-key.sh
 ```
 
-The generator validates the credential shape before making a paid synthesis request and explains the common key-ID mistake without printing either value.
+The installer refuses the common 64-character key-ID mistake without replacing a last-good secret. It writes atomically with owner-only permissions and never prints the credential. The generator revalidates the credential before making a paid synthesis request.
 
 The production voice is ElevenLabs **Will** (`bIHbv24MWmeRgasZH58o`) using `eleven_multilingual_v2` with stability `0.35`, similarity boost `0.8`, style `0.35`, and speaker boost enabled. [`generate-elevenlabs-vo.sh`](generate-elevenlabs-vo.sh) accepts `ELEVENLABS_API_KEY` or reads `ELEVENLABS_API_KEY_FILE` (default: `~/.claude/hooks/.elevenlabs-key`). The secret is never written to this repository.
 

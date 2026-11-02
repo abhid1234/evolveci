@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -8,10 +8,12 @@ import test from "node:test";
 
 const root = process.cwd();
 const sha256 = (value) => crypto.createHash("sha256").update(value).digest("hex");
-const run = (command, args, env = {}) => spawnSync(command, args, {
+const validTestSecret = `sk_${"x".repeat(32)}`;
+const run = (command, args, env = {}, options = {}) => spawnSync(command, args, {
   cwd: root,
   encoding: "utf8",
   env: { ...process.env, ...env },
+  ...options,
 });
 
 async function executable(file, source) {
@@ -37,7 +39,7 @@ printf 'fake-mp3' > "$output"
 printf '200'
 `);
     await executable(ffprobe, "#!/usr/bin/env bash\nprintf '64.0\\n'\n");
-    const secret = "sk_test";
+    const secret = validTestSecret;
     const result = run("bash", ["launch/video/generate-elevenlabs-vo.sh"], {
       ELEVENLABS_API_KEY: secret,
       EVOLVECI_VIDEO_OUTPUT_DIR: directory,
@@ -50,10 +52,10 @@ printf '200'
     const argv = await readFile(argsFile, "utf8");
     const curlConfig = await readFile(configFile, "utf8");
     assert.equal(argv.split("\n")[0], "-q");
-    assert.doesNotMatch(argv, /sk_test|xi-api-key/i);
-    assert.doesNotMatch(`${result.stdout}${result.stderr}`, /sk_test/);
-    assert.match(curlConfig, /xi-api-key: sk_test/);
-    assert.doesNotMatch(await readFile(path.join(directory, "voiceover-metadata.json"), "utf8"), /sk_test/);
+    assert.doesNotMatch(argv, new RegExp(`${secret}|xi-api-key`, "i"));
+    assert.doesNotMatch(`${result.stdout}${result.stderr}`, new RegExp(secret));
+    assert.match(curlConfig, new RegExp(`xi-api-key: ${secret}`));
+    assert.doesNotMatch(await readFile(path.join(directory, "voiceover-metadata.json"), "utf8"), new RegExp(secret));
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -91,7 +93,7 @@ printf '%s' "$count" > "$MOVE_COUNTER"
 /bin/mv "$@"
 `);
     const result = run("bash", ["launch/video/generate-elevenlabs-vo.sh"], {
-      ELEVENLABS_API_KEY: "sk_test",
+      ELEVENLABS_API_KEY: validTestSecret,
       EVOLVECI_VIDEO_OUTPUT_DIR: directory,
       CURL_BIN: curl,
       FFPROBE_BIN: ffprobe,
@@ -117,7 +119,7 @@ test("a custom voice cannot trigger paid generation or overwrite the production 
       CHROME_BIN: path.join(directory, "chrome"),
       VOICE_FILE: path.join(directory, "missing-custom-voice.mp3"),
       AUTO_GENERATE_VO: "1",
-      ELEVENLABS_API_KEY: "sk_test",
+      ELEVENLABS_API_KEY: validTestSecret,
       CURL_BIN: curl,
       FAKE_CURL_MARKER: marker,
     });
@@ -288,6 +290,32 @@ test("public launch gate requires explicit positive readback states", async () =
     const duplicate = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], { EVOLVECI_FACT_CHECK_FILE: factCheck });
     assert.equal(duplicate.status, 1);
     assert.match(duplicate.stderr, /duplicate Code row/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("credential installer is atomic, owner-only, and rejects key IDs", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "evolveci-key-install-"));
+  const keyFile = path.join(directory, "elevenlabs-key");
+  try {
+    await writeFile(keyFile, "last-good-secret\n", { mode: 0o600 });
+    const rejected = run("bash", ["launch/video/install-elevenlabs-key.sh"], {
+      ELEVENLABS_API_KEY_FILE: keyFile,
+    }, { input: `${"i".repeat(64)}\n` });
+    assert.equal(rejected.status, 2);
+    assert.match(rejected.stderr, /API key ID/);
+    assert.equal(await readFile(keyFile, "utf8"), "last-good-secret\n");
+
+    const installed = run("bash", ["launch/video/install-elevenlabs-key.sh"], {
+      ELEVENLABS_API_KEY_FILE: keyFile,
+    }, { input: `${validTestSecret}\n` });
+    assert.equal(installed.status, 0, installed.stderr);
+    assert.doesNotMatch(`${installed.stdout}${installed.stderr}`, new RegExp(validTestSecret));
+    assert.equal(await readFile(keyFile, "utf8"), `${validTestSecret}\n`);
+    if (process.platform !== "win32") {
+      assert.equal((await stat(keyFile)).mode & 0o777, 0o600);
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

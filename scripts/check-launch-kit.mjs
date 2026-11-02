@@ -19,6 +19,7 @@ const required = [
   "launch/video/evolveci-launch.mp4",
   "launch/video/anim.html",
   "launch/video/captions.srt",
+  "launch/video/install-elevenlabs-key.sh",
   "launch/video/generate-elevenlabs-vo.sh",
   "launch/video/music.m4a",
 ];

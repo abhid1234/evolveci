@@ -24,7 +24,7 @@ else
   exit 2
 fi
 
-if [[ ! "$api_key" =~ ^sk_[A-Za-z0-9_-]+$ ]]; then
+if [[ ! "$api_key" =~ ^sk_[A-Za-z0-9_-]{20,}$ ]]; then
   if [[ ${#api_key} -eq 64 ]]; then
     echo "The stored ElevenLabs value looks like an API key ID, not the secret. Create a key in ElevenLabs and copy the one-time sk_ value." >&2
   else
