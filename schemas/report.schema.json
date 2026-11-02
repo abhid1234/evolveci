@@ -32,7 +32,7 @@
     },
     "metricSummary": {
       "type": "object",
-      "required": ["successRate", "medianDurationMs", "medianFilesChanged", "medianChurn", "medianTestFilesChanged", "medianDependenciesAdded", "medianDependenciesChanged", "durationCoefficientOfVariationPercent"],
+      "required": ["successRate", "medianDurationMs", "medianFilesChanged", "medianChurn", "medianTestFilesChanged", "medianDependenciesAdded", "medianDependenciesChanged", "durationCoefficientOfVariationPercent", "medianTotalTokens"],
       "properties": {
         "successRate": { "type": "number", "minimum": 0, "maximum": 1 },
         "medianDurationMs": { "type": ["number", "null"] },
@@ -41,7 +41,8 @@
         "medianTestFilesChanged": { "type": ["number", "null"] },
         "medianDependenciesAdded": { "type": ["number", "null"] },
         "medianDependenciesChanged": { "type": ["number", "null"] },
-        "durationCoefficientOfVariationPercent": { "type": ["number", "null"] }
+        "durationCoefficientOfVariationPercent": { "type": ["number", "null"] },
+        "medianTotalTokens": { "type": ["number", "null"] }
       }
     },
     "summary": {

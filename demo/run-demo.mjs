@@ -60,6 +60,7 @@ try {
       inheritEnvironment: false,
       passEnvironment: [],
       promptTransport: "environment",
+      telemetryFormat: "none",
     },
     execution: { repetitions: 3, maxCoefficientOfVariationPercent: 10_000 },
     thresholds: {
@@ -69,6 +70,7 @@ try {
       maxAddedTestFiles: 0,
       maxAddedDependencies: 0,
       maxChangedDependencies: 0,
+      maxTokenIncreasePercent: 50,
     },
     scenarios: [
       {

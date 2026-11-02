@@ -47,6 +47,8 @@ codex exec --ephemeral --sandbox workspace-write --cd <worktree> --color never -
 
 It does not pass `--dangerously-bypass-approvals-and-sandbox` or add writable directories outside the scenario worktree.
 
+Set `telemetryFormat: codex-jsonl` to parse exact `turn.completed.usage` records. EvolveCI records input, cached input, cache-write input, output, and reasoning-output token fields when present. `totalTokens` is input plus output because cached tokens are already included in input and reasoning tokens are already included in output. If the stream is truncated or contains no completed turn, telemetry is unavailable rather than guessed.
+
 ## Adding another agent
 
 An external adapter can be any executable that follows this contract. Prefer a small wrapper stored in the evaluated repository so its exact behavior is versioned with the scenarios. Use argv arrays in YAML and stdin transport. Add only the credential environment names that the tool requires.

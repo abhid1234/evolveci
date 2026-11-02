@@ -9,6 +9,7 @@ const DEFAULT_THRESHOLDS: Required<ThresholdConfig> = {
   maxAddedTestFiles: 0,
   maxAddedDependencies: 0,
   maxChangedDependencies: 0,
+  maxTokenIncreasePercent: 50,
 };
 
 const DEFAULT_EXECUTION = {
@@ -76,7 +77,7 @@ export function parseConfig(input: string): EvolveConfig {
   if (raw.version !== 1) throw new Error("config.version must be 1");
 
   const agent = asObject(raw.agent, "config.agent");
-  assertKnownKeys(agent, ["command", "timeoutMs", "inheritEnvironment", "passEnvironment", "promptTransport"], "config.agent");
+  assertKnownKeys(agent, ["command", "timeoutMs", "inheritEnvironment", "passEnvironment", "promptTransport", "telemetryFormat"], "config.agent");
   const timeoutMs = optionalPositiveInteger(agent.timeoutMs, "config.agent.timeoutMs");
   const inheritEnvironment = agent.inheritEnvironment ?? false;
   if (typeof inheritEnvironment !== "boolean") {
@@ -85,6 +86,10 @@ export function parseConfig(input: string): EvolveConfig {
   const promptTransport = agent.promptTransport ?? "environment";
   if (promptTransport !== "environment" && promptTransport !== "stdin") {
     throw new Error('config.agent.promptTransport must be "environment" or "stdin"');
+  }
+  const telemetryFormat = agent.telemetryFormat ?? "none";
+  if (telemetryFormat !== "none" && telemetryFormat !== "codex-jsonl") {
+    throw new Error('config.agent.telemetryFormat must be "none" or "codex-jsonl"');
   }
   const passEnvironment = agent.passEnvironment ?? [];
   if (!Array.isArray(passEnvironment) || passEnvironment.some((name) => typeof name !== "string" || !/^[A-Z_][A-Z0-9_]*$/.test(name))) {
@@ -113,6 +118,7 @@ export function parseConfig(input: string): EvolveConfig {
       "maxAddedTestFiles",
       "maxAddedDependencies",
       "maxChangedDependencies",
+      "maxTokenIncreasePercent",
     ],
     "config.thresholds",
   );
@@ -125,6 +131,7 @@ export function parseConfig(input: string): EvolveConfig {
       inheritEnvironment,
       passEnvironment: [...passEnvironment] as string[],
       promptTransport,
+      telemetryFormat,
       ...(timeoutMs === undefined ? {} : { timeoutMs }),
     },
     execution: {
@@ -161,6 +168,11 @@ export function parseConfig(input: string): EvolveConfig {
         thresholds.maxChangedDependencies,
         "config.thresholds.maxChangedDependencies",
         DEFAULT_THRESHOLDS.maxChangedDependencies,
+      ),
+      maxTokenIncreasePercent: threshold(
+        thresholds.maxTokenIncreasePercent,
+        "config.thresholds.maxTokenIncreasePercent",
+        DEFAULT_THRESHOLDS.maxTokenIncreasePercent,
       ),
     },
     scenarios,

@@ -10,6 +10,7 @@ const config: EvolveConfig = {
     inheritEnvironment: false,
     passEnvironment: [],
     promptTransport: "environment",
+    telemetryFormat: "none",
   },
   execution: { repetitions: 1, maxCoefficientOfVariationPercent: 30 },
   thresholds: {
@@ -19,6 +20,7 @@ const config: EvolveConfig = {
     maxAddedTestFiles: 0,
     maxAddedDependencies: 0,
     maxChangedDependencies: 0,
+    maxTokenIncreasePercent: 50,
   },
   scenarios: [{ id: "probe", prompt: "Probe", verify: ["verify"] }],
 };
@@ -42,6 +44,7 @@ function run(side: "base" | "head", filesChanged: number, success = true): Scena
       stderrTruncated: false,
     },
     verifier: null,
+    telemetry: null,
     metrics: {
       filesChanged,
       linesAdded: filesChanged,
@@ -104,4 +107,36 @@ test("evaluateRuns rejects high-variance evidence as inconclusive", () => {
   ]);
   assert.equal(report.conclusion, "inconclusive");
   assert.equal(report.findings[0]?.metric, "durationVariability");
+});
+
+test("evaluateRuns warns on verified token increases", () => {
+  const tokenConfig: EvolveConfig = {
+    ...config,
+    thresholds: { ...config.thresholds, maxAddedFiles: 10, maxChurnIncreasePercent: 10_000, maxTokenIncreasePercent: 20 },
+  };
+  const base = {
+    ...run("base", 1),
+    telemetry: {
+      source: "codex-jsonl" as const,
+      turns: 1,
+      inputTokens: 80,
+      cachedInputTokens: 20,
+      cacheWriteInputTokens: 0,
+      outputTokens: 20,
+      reasoningOutputTokens: 5,
+      totalTokens: 100,
+    },
+  };
+  const head = {
+    ...run("head", 1),
+    telemetry: {
+      ...base.telemetry,
+      inputTokens: 160,
+      outputTokens: 40,
+      totalTokens: 200,
+    },
+  };
+  const report = evaluateRuns("repo", "base", "head", tokenConfig, [base, head]);
+  assert.equal(report.conclusion, "warning");
+  assert.equal(report.findings[0]?.metric, "totalTokens");
 });

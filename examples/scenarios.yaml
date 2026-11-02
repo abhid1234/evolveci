@@ -6,6 +6,7 @@ agent:
   inheritEnvironment: false
   passEnvironment: []
   promptTransport: environment
+  telemetryFormat: none
 execution:
   repetitions: 3
   maxCoefficientOfVariationPercent: 30
@@ -16,6 +17,7 @@ thresholds:
   maxAddedTestFiles: 0
   maxAddedDependencies: 0
   maxChangedDependencies: 0
+  maxTokenIncreasePercent: 50
 scenarios:
   - id: add-enterprise-auditor
     prompt: Add a read-only enterprise auditor role without changing existing role behavior.

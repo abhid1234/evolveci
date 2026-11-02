@@ -62,6 +62,7 @@ function summarize(runs: ScenarioRun[]): MetricSummary {
     medianDependenciesAdded: median(successful.map((run) => run.metrics.dependenciesAdded.length)),
     medianDependenciesChanged: median(successful.map((run) => run.metrics.dependenciesChanged.length)),
     durationCoefficientOfVariationPercent: coefficientOfVariation(successful.map((run) => run.agent.durationMs)),
+    medianTotalTokens: median(successful.flatMap((run) => (run.telemetry ? [run.telemetry.totalTokens] : []))),
   };
 }
 
@@ -214,6 +215,19 @@ export function evaluateRuns(
         config.thresholds.maxChangedDependencies,
         `Head changes more dependency versions: median ${numeric(base.medianDependenciesChanged)} to ${numeric(head.medianDependenciesChanged)}.`,
       );
+      if (base.medianTotalTokens !== null && head.medianTotalTokens !== null) {
+        const tokenIncrease = percentIncrease(base.medianTotalTokens, head.medianTotalTokens);
+        if (tokenIncrease > config.thresholds.maxTokenIncreasePercent) {
+          findings.push({
+            scenarioId,
+            severity: "warning",
+            metric: "totalTokens",
+            message: `Median token usage increased by ${formatPercent(tokenIncrease)}.`,
+            baseValue: base.medianTotalTokens,
+            headValue: head.medianTotalTokens,
+          });
+        }
+      }
     }
 
     summaries.push({ scenarioId, status, base, head });
@@ -246,13 +260,13 @@ export function renderMarkdown(report: ComparisonReport): string {
     "",
     "## Scenario results",
     "",
-    "| Scenario | Status | Base success | Head success | Base files | Head files | Base churn | Head churn |",
-    "|---|---|---:|---:|---:|---:|---:|---:|",
+    "| Scenario | Status | Base success | Head success | Base files | Head files | Base churn | Head churn | Base tokens | Head tokens |",
+    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
   ];
 
   for (const summary of report.summaries) {
     lines.push(
-      `| ${summary.scenarioId} | ${summary.status} | ${(summary.base.successRate * 100).toFixed(0)}% | ${(summary.head.successRate * 100).toFixed(0)}% | ${displayMetric(summary.base.medianFilesChanged)} | ${displayMetric(summary.head.medianFilesChanged)} | ${displayMetric(summary.base.medianChurn)} | ${displayMetric(summary.head.medianChurn)} |`,
+      `| ${summary.scenarioId} | ${summary.status} | ${(summary.base.successRate * 100).toFixed(0)}% | ${(summary.head.successRate * 100).toFixed(0)}% | ${displayMetric(summary.base.medianFilesChanged)} | ${displayMetric(summary.head.medianFilesChanged)} | ${displayMetric(summary.base.medianChurn)} | ${displayMetric(summary.head.medianChurn)} | ${displayMetric(summary.base.medianTotalTokens)} | ${displayMetric(summary.head.medianTotalTokens)} |`,
     );
   }
 

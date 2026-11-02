@@ -51,6 +51,7 @@ test("runComparison evaluates detached base and head worktrees", async () => {
         inheritEnvironment: false,
         passEnvironment: [],
         promptTransport: "environment",
+        telemetryFormat: "none",
       },
       execution: { repetitions: 2, maxCoefficientOfVariationPercent: 10_000 },
       thresholds: {
@@ -60,6 +61,7 @@ test("runComparison evaluates detached base and head worktrees", async () => {
         maxAddedTestFiles: 0,
         maxAddedDependencies: 0,
         maxChangedDependencies: 0,
+        maxTokenIncreasePercent: 50,
       },
       scenarios: [
         {

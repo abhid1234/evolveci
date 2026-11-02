@@ -4,6 +4,7 @@ import { collectChangeMetrics, createWorktree, readDependencies, resolveRevision
 import { runCommand } from "./process.js";
 import { evaluateRuns, renderMarkdown } from "./report.js";
 import { renderHtml } from "./html.js";
+import { parseCodexJsonlTelemetry } from "./telemetry.js";
 import type { ComparisonReport, CommandResult, EvolveConfig, RunSide, ScenarioConfig, ScenarioRun } from "./types.js";
 
 function skippedVerifier(agent: CommandResult): CommandResult {
@@ -88,6 +89,10 @@ async function runScenario(
       success: agent.exitCode === 0 && verifier.exitCode === 0 && !agent.timedOut && !verifier.timedOut,
       agent,
       verifier,
+      telemetry:
+        config.agent.telemetryFormat === "codex-jsonl"
+          ? parseCodexJsonlTelemetry(agent.stdout, agent.stdoutTruncated)
+          : null,
       metrics: await collectChangeMetrics(worktree.path, beforeDependencies),
     };
     await writeCommandLog(outputDir, run);

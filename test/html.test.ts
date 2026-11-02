@@ -32,6 +32,7 @@ test("renderHtml creates a self-contained escaped report", () => {
           medianDependenciesAdded: 0,
           medianDependenciesChanged: 0,
           durationCoefficientOfVariationPercent: 0,
+          medianTotalTokens: 100,
         },
         head: {
           successRate: 1,
@@ -42,6 +43,7 @@ test("renderHtml creates a self-contained escaped report", () => {
           medianDependenciesAdded: 0,
           medianDependenciesChanged: 0,
           durationCoefficientOfVariationPercent: 0,
+          medianTotalTokens: 150,
         },
       },
     ],

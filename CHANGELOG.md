@@ -12,6 +12,7 @@ All notable changes to EvolveCI are documented here. The format follows Keep a C
 - File, churn, test-change, dependency-addition, and dependency-version evidence.
 - Safe argv execution, stdin prompt transport, environment allowlisting, timeouts, and bounded logs.
 - Built-in ephemeral Codex CLI adapter and documented vendor-neutral adapter contract.
+- Exact Codex completed-turn token telemetry with median token-delta thresholds.
 - JSON, Markdown, and dependency-free offline HTML reports.
 - Deterministic three-scenario demo with protected verifiers.
 - CI, trusted-publisher release workflow, package validation, and release documentation.

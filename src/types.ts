@@ -14,6 +14,7 @@ export interface ThresholdConfig {
   maxAddedTestFiles?: number;
   maxAddedDependencies?: number;
   maxChangedDependencies?: number;
+  maxTokenIncreasePercent?: number;
 }
 
 export interface ExecutionConfig {
@@ -30,6 +31,7 @@ export interface EvolveConfig {
     inheritEnvironment: boolean;
     passEnvironment: string[];
     promptTransport: "environment" | "stdin";
+    telemetryFormat: "none" | "codex-jsonl";
   };
   execution: Required<ExecutionConfig>;
   thresholds: Required<ThresholdConfig>;
@@ -61,6 +63,17 @@ export interface ChangeMetrics {
   changedPaths: string[];
 }
 
+export interface AgentTelemetry {
+  source: "codex-jsonl";
+  turns: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  cacheWriteInputTokens: number;
+  outputTokens: number;
+  reasoningOutputTokens: number;
+  totalTokens: number;
+}
+
 export interface ScenarioRun {
   scenarioId: string;
   side: RunSide;
@@ -69,6 +82,7 @@ export interface ScenarioRun {
   success: boolean;
   agent: CommandResult;
   verifier: CommandResult | null;
+  telemetry: AgentTelemetry | null;
   metrics: ChangeMetrics;
 }
 
@@ -94,6 +108,7 @@ export interface MetricSummary {
   medianDependenciesAdded: number | null;
   medianDependenciesChanged: number | null;
   durationCoefficientOfVariationPercent: number | null;
+  medianTotalTokens: number | null;
 }
 
 export interface ScenarioSummary {

@@ -28,6 +28,8 @@ function scenarioRow(summary: ScenarioSummary): string {
     <td>${metric(summary.head.medianFilesChanged)}</td>
     <td>${metric(summary.base.medianChurn)}</td>
     <td>${metric(summary.head.medianChurn)}</td>
+    <td>${metric(summary.base.medianTotalTokens)}</td>
+    <td>${metric(summary.head.medianTotalTokens)}</td>
   </tr>`;
 }
 
@@ -110,7 +112,7 @@ export function renderHtml(report: ComparisonReport): string {
     <section aria-labelledby="scenario-heading">
       <h2 id="scenario-heading">Scenario evidence</h2>
       <div class="table-wrap"><table>
-        <thead><tr><th scope="col">Scenario</th><th scope="col">Status</th><th scope="col">Base success</th><th scope="col">Head success</th><th scope="col">Base files</th><th scope="col">Head files</th><th scope="col">Base churn</th><th scope="col">Head churn</th></tr></thead>
+        <thead><tr><th scope="col">Scenario</th><th scope="col">Status</th><th scope="col">Base success</th><th scope="col">Head success</th><th scope="col">Base files</th><th scope="col">Head files</th><th scope="col">Base churn</th><th scope="col">Head churn</th><th scope="col">Base tokens</th><th scope="col">Head tokens</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
     </section>

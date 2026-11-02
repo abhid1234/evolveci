@@ -29,8 +29,9 @@ EvolveCI must:
 5. collect patch and execution evidence before removing the worktree;
 6. compare head with base per scenario;
 7. aggregate repeated trials using medians and reject unstable evidence;
-8. write human-readable and machine-readable reports;
-9. return a stable CI exit code.
+8. parse optional adapter telemetry only from complete structured records;
+9. write human-readable and machine-readable reports;
+10. return a stable CI exit code.
 
 ## Non-goals for the alpha
 
@@ -71,6 +72,7 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 - Cleanup runs in `finally` and is idempotent.
 - Raw command output is persisted outside temporary worktrees.
 - Repeated-run logs are stored under unique attempt directories.
+- Truncated telemetry is treated as unavailable, never as zero usage.
 
 ## Trust model
 

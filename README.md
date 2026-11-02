@@ -71,6 +71,8 @@ agent:
   passEnvironment: []
   # Use stdin for agents that support it so large prompts never hit env limits.
   promptTransport: stdin
+  # Parse exact token usage from the built-in Codex adapter's JSONL stream.
+  telemetryFormat: codex-jsonl
 
 execution:
   repetitions: 3
@@ -83,6 +85,7 @@ thresholds:
   maxAddedTestFiles: 0
   maxAddedDependencies: 0
   maxChangedDependencies: 0
+  maxTokenIncreasePercent: 50
 
 scenarios:
   - id: add-enterprise-auditor
@@ -118,6 +121,8 @@ agent:
 ```
 
 It invokes `codex exec` in ephemeral, workspace-write mode, streams the scenario through stdin, and emits Codex JSONL into the evidence logs. Authentication continues to use the normal Codex home directory. The adapter never enables the dangerous sandbox-bypass flag.
+
+With `telemetryFormat: codex-jsonl`, EvolveCI reads only complete `turn.completed` records and reports median input-plus-output tokens. Cached and reasoning token details remain in `report.json`. Truncated or malformed streams produce no token claim. EvolveCI does not infer the served model or estimate dollar cost.
 
 See [the adapter contract](docs/ADAPTERS.md) to integrate another coding agent.
 
