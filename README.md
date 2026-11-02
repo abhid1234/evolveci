@@ -126,7 +126,7 @@ Exit codes are designed for CI:
 npm run demo
 ```
 
-The demo creates a temporary permissions service with two revisions. Both preserve the current admin/member behavior, but the head revision replaces the role registry with tightly coupled conditionals. A deterministic fixture agent then adds the same auditor role to both revisions. The base needs one changed file; the head needs four, including a test fixture. EvolveCI reports the regression and saves its evidence under `demo/output/`.
+The demo creates a temporary permissions service with two revisions. Both preserve the current admin/member behavior, but the head revision replaces the role registry with tightly coupled conditionals. A deterministic fixture agent then runs three future role changes against both revisions, three times each. The base needs one changed file per scenario; the head needs four, including a test fixture. EvolveCI reports the regression and saves its evidence under `demo/output/`.
 
 This fixture is intentionally deterministic: it proves the orchestration and report semantics without spending model tokens. The next validation milestone is repeating the same experiment with pinned real coding-agent adapters.
 
@@ -138,6 +138,7 @@ Each run produces:
 .evolveci/runs/latest/
 ├── report.json
 ├── report.md
+├── report.html
 └── logs/
     └── <scenario>/
         ├── base/attempt-1/

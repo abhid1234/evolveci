@@ -18,9 +18,10 @@
 - [x] Add boundary-preserving base and tightly coupled head revisions.
 - [x] Add a protected auditor-role follow-up verifier.
 - [ ] Expand the fixture to multi-tenancy, billing, and audit logging.
-- [ ] Add two more protected follow-up verifiers.
+- [x] Add two more protected follow-up verifiers.
 - [x] Run each scenario three times with a deterministic fixture adapter.
-- [ ] Produce a checked-in anonymized sample report and screenshot-ready HTML view.
+- [x] Produce a screenshot-ready offline HTML view.
+- [ ] Check in an anonymized sample report after public repository naming is final.
 
 ## Milestone 3 — credible agent execution
 

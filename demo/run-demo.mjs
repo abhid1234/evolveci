@@ -77,6 +77,18 @@ try {
         verify: [process.execPath, verifier],
         timeoutMs: 30_000,
       },
+      {
+        id: "add-support-operator",
+        prompt: "Add a support operator that can read support cases without changing existing role behavior.",
+        verify: [process.execPath, verifier],
+        timeoutMs: 30_000,
+      },
+      {
+        id: "add-billing-viewer",
+        prompt: "Add a billing viewer that can read billing records without changing existing role behavior.",
+        verify: [process.execPath, verifier],
+        timeoutMs: 30_000,
+      },
     ],
   };
   const report = await runComparison({ repository, base, head: "HEAD", config, outputDir });

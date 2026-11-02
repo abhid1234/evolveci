@@ -3,6 +3,7 @@ import path from "node:path";
 import { collectChangeMetrics, createWorktree, readDependencies, resolveRevision } from "./git.js";
 import { runCommand } from "./process.js";
 import { evaluateRuns, renderMarkdown } from "./report.js";
+import { renderHtml } from "./html.js";
 import type { ComparisonReport, CommandResult, EvolveConfig, RunSide, ScenarioConfig, ScenarioRun } from "./types.js";
 
 function skippedVerifier(agent: CommandResult): CommandResult {
@@ -121,6 +122,7 @@ export async function runComparison(options: ComparisonOptions): Promise<Compari
   await Promise.all([
     writeFile(path.join(options.outputDir, "report.json"), `${JSON.stringify(report, null, 2)}\n`),
     writeFile(path.join(options.outputDir, "report.md"), renderMarkdown(report)),
+    writeFile(path.join(options.outputDir, "report.html"), renderHtml(report)),
   ]);
   return report;
 }
