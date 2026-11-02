@@ -68,11 +68,11 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 
 Report schemas are immutable and version-addressed. `schemas/report.schema.json` remains the original schema v1 contract and `schemas/report-v2.schema.json` validates reports emitted by `0.1.0-rc.2`. Consumers should select a schema from the report's required `schemaVersion` field rather than treating an unversioned file as “latest.” Both schemas ship in the npm package so stored v1 evidence remains validatable after upgrading.
 
-Schema v2 adds four required fields:
+Schema v2 adds five required field groups:
 
 - `runs[].failure`, which is `null` for a successful run and a structured failure for an unsuccessful run;
 - `summaries[].base.retryableFailures` and `summaries[].head.retryableFailures`;
-- `summaries[].base.terminalFailures` and `summaries[].head.terminalFailures`.
+- `summaries[].base.terminalFailures` and `summaries[].head.terminalFailures`;
 - `runs[].metrics`, which is `null` rather than zero-filled when change metrics could not be collected;
 - `runs[].metricsError`, which is `null` when change metrics were collected and explains why failed-attempt metrics were unavailable otherwise.
 
