@@ -208,10 +208,10 @@ async function writeVideoFixture(directory) {
 async function videoGateFixture() {
   const directory = await mkdtemp(path.join(tmpdir(), "evolveci-video-gate-"));
   await writeVideoFixture(directory);
-  const ffprobe = path.join(directory, "ffprobe-shim");
-  const ffmpeg = path.join(directory, "ffmpeg-shim");
-  await executable(ffprobe, "#!/usr/bin/env bash\nprintf '%s\\n' \"$FAKE_PROBE_JSON\"\n");
-  await executable(ffmpeg, "#!/usr/bin/env bash\nprintf 'mean_volume: -14.0 dB\\nmax_volume: -0.7 dB\\n' >&2\n");
+  const ffprobe = path.join(directory, "ffprobe-shim.mjs");
+  const ffmpeg = path.join(directory, "ffmpeg-shim.mjs");
+  await writeFile(ffprobe, "process.stdout.write(`${process.env.FAKE_PROBE_JSON}\\n`);\n");
+  await writeFile(ffmpeg, "process.stderr.write('mean_volume: -14.0 dB\\nmax_volume: -0.7 dB\\n');\n");
   const validProbe = JSON.stringify({
     format: { duration: "66.000" },
     streams: [
@@ -221,8 +221,10 @@ async function videoGateFixture() {
   });
   const validate = (probe = validProbe) => run(process.execPath, ["scripts/check-production-video.mjs"], {
     EVOLVECI_VIDEO_DIR: directory,
-    FFPROBE_BIN: ffprobe,
-    FFMPEG_BIN: ffmpeg,
+    FFPROBE_BIN: process.execPath,
+    FFMPEG_BIN: process.execPath,
+    FFPROBE_ARGS_PREFIX: JSON.stringify([ffprobe]),
+    FFMPEG_ARGS_PREFIX: JSON.stringify([ffmpeg]),
     FAKE_PROBE_JSON: probe,
   });
   return { directory, validate };

@@ -7,6 +7,8 @@ const root = process.cwd();
 const videoDir = process.env.EVOLVECI_VIDEO_DIR ? path.resolve(process.env.EVOLVECI_VIDEO_DIR) : path.join(root, "launch", "video");
 const ffprobeBin = process.env.FFPROBE_BIN || "ffprobe";
 const ffmpegBin = process.env.FFMPEG_BIN || "ffmpeg";
+const ffprobeArgsPrefix = JSON.parse(process.env.FFPROBE_ARGS_PREFIX ?? "[]");
+const ffmpegArgsPrefix = JSON.parse(process.env.FFMPEG_ARGS_PREFIX ?? "[]");
 const narrationFile = path.join(videoDir, "narration.txt");
 const voiceFile = path.join(videoDir, "evolveci-vo.mp3");
 const metadataFile = path.join(videoDir, "voiceover-metadata.json");
@@ -61,7 +63,7 @@ if (failures.length === 0) {
     }
   }
 
-  const probe = spawnSync(ffprobeBin, [
+  const probe = spawnSync(ffprobeBin, [...ffprobeArgsPrefix,
     "-v", "error",
     "-show_entries", "format=duration:stream=codec_name,codec_type,width,height,r_frame_rate,sample_rate,channels",
     "-of", "json",
@@ -90,7 +92,7 @@ if (failures.length === 0) {
     }
   }
 
-  const volume = spawnSync(ffmpegBin, [
+  const volume = spawnSync(ffmpegBin, [...ffmpegArgsPrefix,
     "-i", masterFile,
     "-map", "0:a:0",
     "-af", "volumedetect",
