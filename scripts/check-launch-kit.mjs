@@ -17,6 +17,7 @@ const required = [
   "launch/PUBLISHING-RUNBOOK.md",
   "launch/figures/blog-banner.png",
   "launch/video/evolveci-launch.mp4",
+  "launch/video/anim.html",
   "launch/video/captions.srt",
   "launch/video/generate-elevenlabs-vo.sh",
   "launch/video/music.m4a",
@@ -44,6 +45,19 @@ if (failures.length === 0) {
   const controlRoom = read("launch/launch-evolveci.html").toString("utf8");
   for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s"]) {
     if (!controlRoom.includes(expected)) failures.push(`launch control room is missing ${expected}`);
+  }
+
+  const animation = read("launch/video/anim.html").toString("utf8");
+  for (const destination of [
+    "npm run demo",
+    "github.com/abhid1234/evolveci",
+    "npmjs.com/package/@avee1234/evolveci",
+    "abhid.substack.com",
+  ]) {
+    if (!animation.includes(destination)) failures.push(`video CTA is missing ${destination}`);
+  }
+  if (/launch essay . pending|evolveci . pending/i.test(animation)) {
+    failures.push("video CTA still contains a provisional destination");
   }
 
   const video = read("launch/video/evolveci-launch.mp4");

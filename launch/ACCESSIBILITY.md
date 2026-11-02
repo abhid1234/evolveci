@@ -28,7 +28,7 @@ Comparison of what EvolveCI can and cannot show. It can show that one chosen fol
 
 ## Video description
 
-A 66-second, light-background motion-graphics explainer. It begins with a passing pull request, asks what happened to the next change, explains the paired base-versus-head experiment, shows the deterministic one-file-versus-four-file result, lists the evidence retained, preserves failures as evidence, states the tool's narrow limitations, and closes with demo, code, npm, and essay destinations. The npm package and essay are visibly labeled pending until those surfaces are public.
+A 66-second, light-background motion-graphics explainer. It begins with a passing pull request, asks what happened to the next change, explains the paired base-versus-head experiment, shows the deterministic one-file-versus-four-file result, lists the evidence retained, preserves failures as evidence, states the tool's narrow limitations, and closes with stable demo, code, npm, and Substack destinations. The publishing runbook still requires independent public readback before any destination is described as live.
 
 The narration source is [`video/narration.txt`](video/narration.txt), and timed captions are available in [`video/captions.srt`](video/captions.srt).
 
