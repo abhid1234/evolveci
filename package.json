@@ -1,26 +1,41 @@
 {
   "name": "@avee1234/evolveci",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-rc.1",
   "description": "Counterfactual evolvability testing for pull requests.",
   "type": "module",
-  "private": true,
   "bin": {
     "evolveci": "dist/src/cli.js"
   },
   "files": [
     "dist/src",
+    "docs",
+    "schemas",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "engines": {
     "node": ">=20.11"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhid1234/evolveci.git"
+  },
+  "homepage": "https://github.com/abhid1234/evolveci#readme",
+  "bugs": {
+    "url": "https://github.com/abhid1234/evolveci/issues"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "npm run build && npm test",
+    "check": "npm run version:check && npm run static:check && npm run build && npm test",
     "demo": "npm run build && node demo/run-demo.mjs",
+    "release:check": "npm run check && npm run demo && node scripts/verify-package.mjs && node scripts/smoke-package.mjs",
     "test": "node --test dist/test/*.test.js",
-    "start": "node dist/src/cli.js"
+    "start": "node dist/src/cli.js",
+    "static:check": "node scripts/check-static-files.mjs",
+    "version:check": "node scripts/check-version-surfaces.mjs",
+    "prepack": "npm run version:check && npm run build",
+    "prepublishOnly": "npm run release:check"
   },
   "dependencies": {
     "yaml": "^2.8.1"
@@ -30,6 +45,10 @@
     "typescript": "^5.9.2"
   },
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "keywords": [
     "ci",
     "code-quality",

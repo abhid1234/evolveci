@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evolveci.dev/schemas/report.schema.json",
+  "title": "EvolveCI comparison report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "repository", "baseRevision", "headRevision", "conclusion", "findings", "summaries", "runs"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "repository": { "type": "string" },
+    "baseRevision": { "type": "string", "minLength": 7 },
+    "headRevision": { "type": "string", "minLength": 7 },
+    "conclusion": { "enum": ["pass", "warning", "inconclusive"] },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "summaries": { "type": "array", "items": { "$ref": "#/$defs/summary" } },
+    "runs": { "type": "array", "items": { "$ref": "#/$defs/run" } }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "severity", "metric", "message"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "severity": { "enum": ["improvement", "info", "warning", "critical"] },
+        "metric": { "type": "string" },
+        "message": { "type": "string" },
+        "baseValue": { "type": ["number", "boolean"] },
+        "headValue": { "type": ["number", "boolean"] }
+      }
+    },
+    "metricSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["successRate", "medianDurationMs", "medianFilesChanged", "medianChurn", "medianTestFilesChanged", "medianDependenciesAdded", "medianDependenciesChanged", "durationCoefficientOfVariationPercent", "medianTotalTokens"],
+      "properties": {
+        "successRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "medianDurationMs": { "type": ["number", "null"] },
+        "medianFilesChanged": { "type": ["number", "null"] },
+        "medianChurn": { "type": ["number", "null"] },
+        "medianTestFilesChanged": { "type": ["number", "null"] },
+        "medianDependenciesAdded": { "type": ["number", "null"] },
+        "medianDependenciesChanged": { "type": ["number", "null"] },
+        "durationCoefficientOfVariationPercent": { "type": ["number", "null"] },
+        "medianTotalTokens": { "type": ["number", "null"] }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "status", "base", "head"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "status": { "enum": ["comparable", "improved", "regressed", "inconclusive"] },
+        "base": { "$ref": "#/$defs/metricSummary" },
+        "head": { "$ref": "#/$defs/metricSummary" }
+      }
+    },
+    "commandResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "exitCode", "signal", "timedOut", "durationMs", "stdout", "stderr", "stdoutTruncated", "stderrTruncated"],
+      "properties": {
+        "command": { "type": "array", "items": { "type": "string" } },
+        "exitCode": { "type": ["integer", "null"] },
+        "signal": { "type": ["string", "null"] },
+        "timedOut": { "type": "boolean" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "stdout": { "type": "string" },
+        "stderr": { "type": "string" },
+        "stdoutTruncated": { "type": "boolean" },
+        "stderrTruncated": { "type": "boolean" }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "turns", "inputTokens", "cachedInputTokens", "cacheWriteInputTokens", "outputTokens", "reasoningOutputTokens", "totalTokens"],
+      "properties": {
+        "source": { "const": "codex-jsonl" },
+        "turns": { "type": "integer", "minimum": 1 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "cachedInputTokens": { "type": "integer", "minimum": 0 },
+        "cacheWriteInputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "reasoningOutputTokens": { "type": "integer", "minimum": 0 },
+        "totalTokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "changeMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filesChanged", "linesAdded", "linesDeleted", "churn", "testFilesChanged", "dependenciesAdded", "dependenciesChanged", "changedPaths"],
+      "properties": {
+        "filesChanged": { "type": "integer", "minimum": 0 },
+        "linesAdded": { "type": "integer", "minimum": 0 },
+        "linesDeleted": { "type": "integer", "minimum": 0 },
+        "churn": { "type": "integer", "minimum": 0 },
+        "testFilesChanged": { "type": "integer", "minimum": 0 },
+        "dependenciesAdded": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "dependenciesChanged": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "changedPaths": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "side", "attempt", "revision", "success", "agent", "verifier", "telemetry", "metrics"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "side": { "enum": ["base", "head"] },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "revision": { "type": "string", "minLength": 7 },
+        "success": { "type": "boolean" },
+        "agent": { "$ref": "#/$defs/commandResult" },
+        "verifier": { "anyOf": [{ "$ref": "#/$defs/commandResult" }, { "type": "null" }] },
+        "telemetry": { "anyOf": [{ "$ref": "#/$defs/telemetry" }, { "type": "null" }] },
+        "metrics": { "$ref": "#/$defs/changeMetrics" }
+      }
+    }
+  }
+}

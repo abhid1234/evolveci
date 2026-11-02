@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evolveci.dev/schemas/config.schema.json",
+  "title": "EvolveCI configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agent", "scenarios"],
+  "properties": {
+    "version": { "const": 1 },
+    "setup": { "$ref": "#/$defs/command" },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command"],
+      "properties": {
+        "command": { "$ref": "#/$defs/command" },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "inheritEnvironment": { "type": "boolean", "default": false },
+        "passEnvironment": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
+          "uniqueItems": true,
+          "default": []
+        },
+        "promptTransport": { "enum": ["environment", "stdin"], "default": "environment" },
+        "telemetryFormat": { "enum": ["none", "codex-jsonl"], "default": "none" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repetitions": { "type": "integer", "minimum": 1, "maximum": 20, "default": 1 },
+        "maxCoefficientOfVariationPercent": { "type": "number", "minimum": 0, "default": 30 }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxAddedFiles": { "type": "number", "minimum": 0, "default": 2 },
+        "maxDurationIncreasePercent": { "type": "number", "minimum": 0, "default": 50 },
+        "maxChurnIncreasePercent": { "type": "number", "minimum": 0, "default": 50 },
+        "maxAddedTestFiles": { "type": "number", "minimum": 0, "default": 0 },
+        "maxAddedDependencies": { "type": "number", "minimum": 0, "default": 0 },
+        "maxChangedDependencies": { "type": "number", "minimum": 0, "default": 0 },
+        "maxTokenIncreasePercent": { "type": "number", "minimum": 0, "default": 50 }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "prompt", "verify"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "prompt": { "type": "string", "minLength": 1 },
+          "verify": { "$ref": "#/$defs/command" },
+          "timeoutMs": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "command": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

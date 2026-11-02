@@ -13,6 +13,13 @@ export interface ThresholdConfig {
   maxChurnIncreasePercent?: number;
   maxAddedTestFiles?: number;
   maxAddedDependencies?: number;
+  maxChangedDependencies?: number;
+  maxTokenIncreasePercent?: number;
+}
+
+export interface ExecutionConfig {
+  repetitions?: number;
+  maxCoefficientOfVariationPercent?: number;
 }
 
 export interface EvolveConfig {
@@ -21,7 +28,12 @@ export interface EvolveConfig {
   agent: {
     command: CommandSpec;
     timeoutMs?: number;
+    inheritEnvironment: boolean;
+    passEnvironment: string[];
+    promptTransport: "environment" | "stdin";
+    telemetryFormat: "none" | "codex-jsonl";
   };
+  execution: Required<ExecutionConfig>;
   thresholds: Required<ThresholdConfig>;
   scenarios: ScenarioConfig[];
 }
@@ -36,6 +48,8 @@ export interface CommandResult {
   durationMs: number;
   stdout: string;
   stderr: string;
+  stdoutTruncated: boolean;
+  stderrTruncated: boolean;
 }
 
 export interface ChangeMetrics {
@@ -45,16 +59,30 @@ export interface ChangeMetrics {
   churn: number;
   testFilesChanged: number;
   dependenciesAdded: string[];
+  dependenciesChanged: string[];
   changedPaths: string[];
+}
+
+export interface AgentTelemetry {
+  source: "codex-jsonl";
+  turns: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  cacheWriteInputTokens: number;
+  outputTokens: number;
+  reasoningOutputTokens: number;
+  totalTokens: number;
 }
 
 export interface ScenarioRun {
   scenarioId: string;
   side: RunSide;
+  attempt: number;
   revision: string;
   success: boolean;
   agent: CommandResult;
   verifier: CommandResult | null;
+  telemetry: AgentTelemetry | null;
   metrics: ChangeMetrics;
 }
 
@@ -71,6 +99,25 @@ export interface Finding {
 
 export type Conclusion = "pass" | "warning" | "inconclusive";
 
+export interface MetricSummary {
+  successRate: number;
+  medianDurationMs: number | null;
+  medianFilesChanged: number | null;
+  medianChurn: number | null;
+  medianTestFilesChanged: number | null;
+  medianDependenciesAdded: number | null;
+  medianDependenciesChanged: number | null;
+  durationCoefficientOfVariationPercent: number | null;
+  medianTotalTokens: number | null;
+}
+
+export interface ScenarioSummary {
+  scenarioId: string;
+  status: "comparable" | "improved" | "regressed" | "inconclusive";
+  base: MetricSummary;
+  head: MetricSummary;
+}
+
 export interface ComparisonReport {
   schemaVersion: 1;
   generatedAt: string;
@@ -79,5 +126,6 @@ export interface ComparisonReport {
   headRevision: string;
   conclusion: Conclusion;
   findings: Finding[];
+  summaries: ScenarioSummary[];
   runs: ScenarioRun[];
 }

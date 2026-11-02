@@ -17,6 +17,11 @@ test("parseConfig applies conservative defaults", () => {
   assert.equal(config.scenarios.length, 1);
   assert.deepEqual(config.agent.command, ["node", "agent.mjs"]);
   assert.equal(config.thresholds.maxAddedDependencies, 0);
+  assert.equal(config.thresholds.maxChangedDependencies, 0);
+  assert.equal(config.thresholds.maxTokenIncreasePercent, 50);
+  assert.equal(config.execution.repetitions, 1);
+  assert.equal(config.agent.inheritEnvironment, false);
+  assert.equal(config.agent.telemetryFormat, "none");
 });
 
 test("parseConfig rejects duplicate scenarios", () => {
@@ -29,4 +34,20 @@ test("parseConfig rejects duplicate scenarios", () => {
 
 test("parseConfig rejects shell command strings", () => {
   assert.throws(() => parseConfig(VALID.replace('["node", "agent.mjs"]', '"node agent.mjs"')), /non-empty array/);
+});
+
+test("parseConfig rejects unknown keys instead of silently ignoring typos", () => {
+  assert.throws(() => parseConfig(VALID.replace("version: 1", "version: 1\nrepetitons: 3")), /unknown key.*repetitons/);
+});
+
+test("parseConfig validates repetitions and environment allowlists", () => {
+  assert.throws(() => parseConfig(VALID.replace("scenarios:", "execution:\n  repetitions: 21\nscenarios:")), /must not exceed 20/);
+  assert.throws(
+    () => parseConfig(VALID.replace('command: ["node", "agent.mjs"]', 'command: ["node", "agent.mjs"]\n  passEnvironment: ["bad-name"]')),
+    /environment variable names/,
+  );
+  assert.throws(
+    () => parseConfig(VALID.replace('command: ["node", "agent.mjs"]', 'command: ["node", "agent.mjs"]\n  telemetryFormat: guessed-cost')),
+    /telemetryFormat/,
+  );
 });

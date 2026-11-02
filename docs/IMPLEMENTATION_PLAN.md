@@ -8,7 +8,7 @@
 - [x] Add exact-ref resolution and detached worktree lifecycle.
 - [x] Collect patch, test-file, and dependency metrics.
 - [x] Evaluate per-scenario threshold deltas.
-- [x] Render JSON and Markdown evidence.
+- [x] Render JSON, Markdown, and offline HTML evidence.
 - [x] Expose `validate` and `run` CLI commands.
 - [x] Complete clean-install and integration verification.
 
@@ -18,16 +18,19 @@
 - [x] Add boundary-preserving base and tightly coupled head revisions.
 - [x] Add a protected auditor-role follow-up verifier.
 - [ ] Expand the fixture to multi-tenancy, billing, and audit logging.
-- [ ] Add two more protected follow-up verifiers.
-- [ ] Run each scenario three times with a deterministic fixture adapter.
-- [ ] Produce a checked-in anonymized sample report and screenshot-ready HTML view.
+- [x] Add two more protected follow-up verifiers.
+- [x] Run each scenario three times with a deterministic fixture adapter.
+- [x] Produce a screenshot-ready offline HTML view.
+- [ ] Check in an anonymized sample report after public repository naming is final.
 
 ## Milestone 3 — credible agent execution
 
-- [ ] Define an adapter protocol with prompt, token, turn, and cost telemetry.
-- [ ] Add a Codex CLI adapter.
+- [x] Define a subprocess adapter protocol with prompt and run metadata.
+- [x] Add a constrained Codex CLI adapter.
+- [x] Add normalized Codex token and turn telemetry.
+- [ ] Add cost estimates only after model identity and pricing can be verified.
 - [ ] Add a Claude Code adapter.
-- [ ] Add run repetition, medians, dispersion, and confidence-based inconclusive results.
+- [x] Add run repetition, medians, dispersion, and confidence-based inconclusive results.
 - [ ] Add retry classification without hiding failures.
 
 ## Milestone 4 — isolation and CI

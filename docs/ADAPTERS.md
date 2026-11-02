@@ -1,0 +1,56 @@
+# Agent adapter contract
+
+EvolveCI deliberately treats coding agents as subprocess adapters. The comparison engine owns isolation, pairing, verification, evidence, and policy; an adapter owns only the translation from one scenario prompt to one agent invocation.
+
+## Inputs
+
+The adapter runs with its working directory set to the detached scenario worktree.
+
+It receives:
+
+- the scenario prompt on stdin when `promptTransport: stdin`;
+- or `EVOLVECI_PROMPT` when `promptTransport: environment`;
+- `EVOLVECI_SCENARIO_ID`;
+- `EVOLVECI_SIDE` (`base` or `head`);
+- `EVOLVECI_REVISION` (exact commit SHA);
+- `EVOLVECI_ATTEMPT` (one-based repeat number);
+- `EVOLVECI_REPOSITORY` (source Git repository);
+- `EVOLVECI_WORKTREE` (current detached worktree).
+
+## Required behavior
+
+1. Modify only the current worktree and agent-owned cache/session paths.
+2. Exit `0` only when the coding task completed normally.
+3. Use stdout and stderr for diagnostic events; EvolveCI captures both with truncation markers.
+4. Never run the scenario verifier or grade the result. EvolveCI keeps evaluation outside the agent boundary.
+5. Never switch branches, commit, push, publish, or deploy.
+
+## Built-in Codex adapter
+
+```bash
+printf '%s' 'Add the future change' | evolveci adapter codex
+```
+
+Optional flags:
+
+```text
+--model <id>        Override the configured Codex model
+--profile <name>    Load a named Codex profile
+--codex-bin <path>  Use a specific Codex executable
+```
+
+The adapter runs this constrained shape:
+
+```text
+codex exec --ephemeral --sandbox workspace-write --cd <worktree> --color never --json -
+```
+
+It does not pass `--dangerously-bypass-approvals-and-sandbox` or add writable directories outside the scenario worktree.
+
+Programmatic integrations may provide `codexCommand` as a non-empty argv prefix when Codex is launched through a runtime or wrapper. For example, `[process.execPath, "codex-wrapper.mjs"]` is portable across operating systems. Set either `codexCommand` or `codexBin`, never both.
+
+Set `telemetryFormat: codex-jsonl` to parse exact `turn.completed.usage` records. EvolveCI records input, cached input, cache-write input, output, and reasoning-output token fields when present. `totalTokens` is input plus output because cached tokens are already included in input and reasoning tokens are already included in output. If the stream is truncated or contains no completed turn, telemetry is unavailable rather than guessed.
+
+## Adding another agent
+
+An external adapter can be any executable that follows this contract. Prefer a small wrapper stored in the evaluated repository so its exact behavior is versioned with the scenarios. Use argv arrays in YAML and stdin transport. Add only the credential environment names that the tool requires.

@@ -54,18 +54,40 @@ try {
   await rm(outputDir, { recursive: true, force: true });
   const config = {
     version: 1,
-    agent: { command: [process.execPath, fixtureAgent], timeoutMs: 30_000 },
+    agent: {
+      command: [process.execPath, fixtureAgent],
+      timeoutMs: 30_000,
+      inheritEnvironment: false,
+      passEnvironment: [],
+      promptTransport: "environment",
+      telemetryFormat: "none",
+    },
+    execution: { repetitions: 3, maxCoefficientOfVariationPercent: 10_000 },
     thresholds: {
       maxAddedFiles: 1,
       maxDurationIncreasePercent: 10_000,
       maxChurnIncreasePercent: 500,
       maxAddedTestFiles: 0,
       maxAddedDependencies: 0,
+      maxChangedDependencies: 0,
+      maxTokenIncreasePercent: 50,
     },
     scenarios: [
       {
         id: "add-enterprise-auditor",
         prompt: "Add a read-only enterprise auditor role without changing existing role behavior.",
+        verify: [process.execPath, verifier],
+        timeoutMs: 30_000,
+      },
+      {
+        id: "add-support-operator",
+        prompt: "Add a support operator that can read support cases without changing existing role behavior.",
+        verify: [process.execPath, verifier],
+        timeoutMs: 30_000,
+      },
+      {
+        id: "add-billing-viewer",
+        prompt: "Add a billing viewer that can read billing records without changing existing role behavior.",
         verify: [process.execPath, verifier],
         timeoutMs: 30_000,
       },
