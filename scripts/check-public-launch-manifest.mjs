@@ -4,7 +4,11 @@ import path from "node:path";
 const factCheckFile = process.env.EVOLVECI_FACT_CHECK_FILE
   ? path.resolve(process.env.EVOLVECI_FACT_CHECK_FILE)
   : new URL("../launch/FACT-CHECK.md", import.meta.url);
+const launchPostsFile = process.env.EVOLVECI_LAUNCH_POSTS_FILE
+  ? path.resolve(process.env.EVOLVECI_LAUNCH_POSTS_FILE)
+  : new URL("../launch/launch-posts.md", import.meta.url);
 const factCheck = fs.readFileSync(factCheckFile, "utf8");
+const launchPosts = fs.readFileSync(launchPostsFile, "utf8");
 const rows = new Map();
 const failures = [];
 
@@ -36,9 +40,18 @@ for (const [surface, canonicalUrl] of required) {
   if (!/^LIVE_VERIFIED\b/.test(row.state)) failures.push(`${surface} is not publicly verified: ${row.state}`);
 }
 
+const linkedInComment = launchPosts.split("### LinkedIn first comment")[1]?.split("## Hacker News")[0] ?? "";
+if (/\{\{[A-Z0-9_]+\}\}|\bTBD\b/.test(linkedInComment)) {
+  failures.push("LinkedIn first comment still contains a launch-link placeholder");
+}
+for (const surface of ["Code", "npm", "GitHub release", "Demo / playground", "Substack"]) {
+  const url = rows.get(surface)?.url;
+  if (url && !linkedInComment.includes(url)) failures.push(`LinkedIn first comment is missing the verified ${surface} URL`);
+}
+
 if (failures.length > 0) {
   console.error(`Public launch manifest is not ready:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
 
-console.log("Public launch manifest contains an explicit LIVE_VERIFIED readback for every required surface.");
+console.log("Public launch manifest and LinkedIn first-comment links match every verified launch surface.");

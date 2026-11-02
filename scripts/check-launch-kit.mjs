@@ -34,6 +34,17 @@ if (failures.length === 0) {
   const posts = read("launch/launch-posts.md").toString("utf8").replace(/\r\n/g, "\n");
   const x = posts.split("## X")[1]?.split("## LinkedIn")[0]?.trim() ?? "";
   if ([...x].length > 280) failures.push(`X draft is ${[...x].length} characters`);
+  const linkedInComment = posts.split("### LinkedIn first comment")[1]?.split("## Hacker News")[0] ?? "";
+  for (const expected of [
+    "https://github.com/abhid1234/evolveci#run-the-deterministic-demo",
+    "https://www.npmjs.com/package/@avee1234/evolveci",
+    "https://github.com/abhid1234/evolveci/releases/tag/v0.1.0",
+  ]) {
+    if (!linkedInComment.includes(expected)) failures.push(`LinkedIn first comment is missing ${expected}`);
+  }
+  if (!/\{\{SUBSTACK_URL\}\}|https:\/\/abhid\.substack\.com\/p\/[a-z0-9-]+\/?/.test(linkedInComment)) {
+    failures.push("LinkedIn first comment is missing a Substack placeholder or canonical URL");
+  }
 
   const blog = read("launch/blog-evolveci.md").toString("utf8");
   if (blog.trim().split(/\s+/).length < 800) failures.push("canonical essay is under 800 words");
@@ -42,6 +53,10 @@ if (failures.length === 0) {
   const embeddedImages = substack.match(/data:image\/png;base64/g)?.length ?? 0;
   if (embeddedImages < 3) failures.push(`Substack HTML has only ${embeddedImages} embedded figures`);
   if (substack.includes("**")) failures.push("Substack HTML contains unrendered Markdown emphasis");
+  const installCommand = "npm install --global @avee1234/evolveci@0.1.0";
+  if (!blog.includes(installCommand)) failures.push("canonical essay is missing the gated npm install command");
+  if (!substack.includes(installCommand)) failures.push("Substack HTML is missing the gated npm install command");
+  if (/not yet been published to npm/i.test(`${blog}\n${substack}`)) failures.push("essay still contains stale pre-publication npm copy");
 
   const controlRoom = read("launch/launch-evolveci.html").toString("utf8");
   for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s"]) {

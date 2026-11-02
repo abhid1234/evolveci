@@ -261,6 +261,7 @@ test("public launch gate requires explicit positive readback states", async () =
   const directory = await mkdtemp(path.join(tmpdir(), "evolveci-public-gate-"));
   try {
     const factCheck = path.join(directory, "FACT-CHECK.md");
+    const launchPosts = path.join(directory, "launch-posts.md");
     const surfaces = new Map([
       ["Code", "https://github.com/abhid1234/evolveci"],
       ["CI proof", "https://github.com/abhid1234/evolveci/pull/5/checks"],
@@ -273,21 +274,34 @@ test("public launch gate requires explicit positive readback states", async () =
       const rows = [...surfaces].map(([surface, url]) => `| ${surface} | ${url} | ${state} |`).join("\n");
       await writeFile(factCheck, `| Surface | URL | Current state |\n|---|---|---|\n${rows}\n`);
     };
+    const validComment = `### LinkedIn first comment\n\n${["Code", "npm", "GitHub release", "Demo / playground", "Substack"]
+      .map((surface) => `${surface}: ${surfaces.get(surface)}`)
+      .join("\n\n")}\n\n## Hacker News\n`;
+    await writeFile(launchPosts, validComment);
+    const gateEnv = {
+      EVOLVECI_FACT_CHECK_FILE: factCheck,
+      EVOLVECI_LAUNCH_POSTS_FILE: launchPosts,
+    };
     for (const state of ["Draft", "Unverified", "Needs readback", "Pending"]) {
       await writeManifest(state);
-      const result = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], { EVOLVECI_FACT_CHECK_FILE: factCheck });
+      const result = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], gateEnv);
       assert.equal(result.status, 1, `state ${state} must fail`);
     }
     await writeManifest("LIVE_VERIFIED: signed-out readback complete");
-    const passing = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], { EVOLVECI_FACT_CHECK_FILE: factCheck });
+    const passing = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], gateEnv);
     assert.equal(passing.status, 0, passing.stderr);
+    await writeFile(launchPosts, validComment.replace(surfaces.get("Substack"), "{{SUBSTACK_URL}}"));
+    const placeholder = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], gateEnv);
+    assert.equal(placeholder.status, 1);
+    assert.match(placeholder.stderr, /launch-link placeholder/);
+    await writeFile(launchPosts, validComment);
     await writeFile(factCheck, (await readFile(factCheck, "utf8")).replace("https://github.com/abhid1234/evolveci", "https://example.test/evolveci"));
-    const wrongHost = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], { EVOLVECI_FACT_CHECK_FILE: factCheck });
+    const wrongHost = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], gateEnv);
     assert.equal(wrongHost.status, 1);
     assert.match(wrongHost.stderr, /canonical launch URL/);
     await writeManifest("LIVE_VERIFIED: signed-out readback complete");
     await writeFile(factCheck, `${await readFile(factCheck, "utf8")}| Code | https://example.test/duplicate | LIVE_VERIFIED: duplicate |\n`);
-    const duplicate = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], { EVOLVECI_FACT_CHECK_FILE: factCheck });
+    const duplicate = run(process.execPath, ["scripts/check-public-launch-manifest.mjs"], gateEnv);
     assert.equal(duplicate.status, 1);
     assert.match(duplicate.stderr, /duplicate Code row/);
   } finally {

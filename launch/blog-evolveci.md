@@ -95,11 +95,16 @@ npm run demo
 
 It writes the JSON, Markdown, HTML, and raw evidence under `demo/output/`.
 
-Version `0.1.0` is prepared but has not yet been published to npm. Until the registry readback is live, use the repository rather than a speculative install command.
+The release sequence requires a signed-out npm registry readback before this essay is published. Once that gate is green, install the exact alpha with:
+
+```bash
+npm install --global @avee1234/evolveci@0.1.0
+```
 
 The code, schemas, demo, and limitations are all here:
 
 - [Code and demo](https://github.com/abhid1234/evolveci?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
+- [npm package](https://www.npmjs.com/package/@avee1234/evolveci)
 - [Executable specification](https://github.com/abhid1234/evolveci/blob/main/docs/SPEC.md?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 - [Green cross-platform CI](https://github.com/abhid1234/evolveci/pull/5/checks?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 
