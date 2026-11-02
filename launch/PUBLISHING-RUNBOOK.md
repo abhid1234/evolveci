@@ -23,9 +23,10 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 ## 3. Establish public destinations
 
 - Confirm the canonical repository and deterministic demo instructions.
-- Publish or confirm the public demo/playground URL if one exists.
+- Confirm the canonical deterministic demo link resolves to the README instructions.
 - Replace every `TBD` or pending link in [`FACT-CHECK.md`](FACT-CHECK.md), the essay, social drafts, and final video CTA.
 - Run `npm run launch:check` after the replacements.
+- Run `npm run launch:public-check`; it must remain red until every required row in the fact ledger is public.
 
 ## 4. Publish the essay
 

@@ -23,11 +23,11 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 ## Launch sequence
 
 1. Merge the launch-material PR after CI passes.
-2. Publish `@avee1234/evolveci` through the existing trusted-publisher release workflow.
+2. Bootstrap `@avee1234/evolveci@0.1.0` once with account 2FA, following [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md); the package does not yet exist, so trusted publishing cannot create it.
 3. Verify the npm registry response independently.
-4. Create or confirm the public demo URL.
-5. Replace the two pending links identified in [`FACT-CHECK.md`](FACT-CHECK.md).
-6. Paste `blog-evolveci-substack.html` into Substack, upload the video, and verify every public link.
+4. Configure trusted publishing for subsequent releases and create the exact-SHA GitHub release.
+5. Paste `blog-evolveci-substack.html` into Substack, upload the video, and record the public URL in [`FACT-CHECK.md`](FACT-CHECK.md).
+6. Run `npm run launch:public-check` and independently open every public destination.
 7. Post manually. Nothing in this directory auto-posts.
 
 ## Voice and positioning

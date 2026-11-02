@@ -1,6 +1,6 @@
 # Launch fact check
 
-Verified against `main` at `99e2cbb2183122b7b94e7a5667c1f7bf34d29619` on 2026-11-01 Pacific time.
+Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9f2a8e3bc5502fc13a1e6c7b6c250`, on 2026-11-01 Pacific time. Public surfaces require their own readbacks below.
 
 ## Safe public claims
 
@@ -23,7 +23,7 @@ Verified against `main` at `99e2cbb2183122b7b94e7a5667c1f7bf34d29619` on 2026-11
 | CI proof | https://github.com/abhid1234/evolveci/actions/runs/41392669881 | Live and green |
 | npm | https://www.npmjs.com/package/@avee1234/evolveci | **Pending first publication; registry returned 404 on 2026-11-01 PT** |
 | GitHub release | https://github.com/abhid1234/evolveci/releases | **No release yet** |
-| Demo / playground | TBD | **Pending** |
+| Demo / playground | https://github.com/abhid1234/evolveci#run-the-deterministic-demo | Live and reproducible from the repository |
 | Substack | TBD | **Pending** |
 
 ## Claims deliberately excluded

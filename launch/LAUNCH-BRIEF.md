@@ -49,4 +49,4 @@ This is a mechanism demonstration, not a general benchmark. Do not imply that fo
 
 ## Launch gate
 
-Do not post until all four pending public surfaces are independently verified: npm registry, GitHub release, public demo URL, and published Substack URL. The current status is maintained in [`FACT-CHECK.md`](FACT-CHECK.md).
+Do not post until the three unpublished public surfaces are independently verified: npm registry, GitHub release, and published Substack URL. The deterministic demo already has a canonical repository destination. Current status is maintained in [`FACT-CHECK.md`](FACT-CHECK.md).
