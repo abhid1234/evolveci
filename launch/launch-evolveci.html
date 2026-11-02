@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="EvolveCI launch control room and copy-ready launch materials.">
+  <title>EvolveCI — Launch Control Room</title>
+  <style>
+    :root{--ink:#18201d;--muted:#66706b;--paper:#f4f1e9;--card:#fffdf7;--line:#d7d0c1;--accent:#235f52;--accent2:#d46638;--soft:#dcebe5;--warn:#9b5d16;--shadow:0 18px 45px rgba(42,48,44,.09)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:linear-gradient(rgba(35,95,82,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(35,95,82,.035) 1px,transparent 1px),var(--paper);background-size:26px 26px;font:16px/1.6 Inter,ui-sans-serif,system-ui,sans-serif}a{color:var(--accent);text-underline-offset:3px}.page{width:min(1180px,calc(100% - 32px));margin:auto;padding:38px 0 80px}.eyebrow,.label{font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase}.eyebrow{color:var(--accent);margin-bottom:24px}.hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:18px}.hero-copy,.status,.card{background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}.hero-copy{padding:clamp(28px,6vw,72px)}h1{font:600 clamp(54px,9vw,118px)/.85 Georgia,serif;letter-spacing:-.065em;margin:0 0 24px}h1 em{font-style:normal;color:var(--accent2)}.lede{font-size:clamp(20px,2.5vw,31px);line-height:1.25;max-width:760px;margin:0}.status{padding:28px;color:#eff7f3;background:var(--ink);display:flex;flex-direction:column;justify-content:space-between}.status strong{font:600 40px/1 Georgia,serif}.status .proof{font:800 clamp(68px,9vw,116px)/.85 ui-monospace,monospace;letter-spacing:-.09em;color:#ef8357}.status small{color:#c8d0cc}.nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 0}.nav a{padding:8px 11px;border:1px solid #59625e;color:#fff;text-decoration:none;font:650 12px/1 ui-monospace,monospace}.section{margin-top:70px}.section-head{display:grid;grid-template-columns:150px 1fr;gap:24px;margin-bottom:20px}.section h2{font:600 clamp(36px,5vw,62px)/1 Georgia,serif;letter-spacing:-.04em;margin:0}.label{color:var(--accent2);padding-top:8px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{padding:24px}.card h3{margin:0 0 8px;font-size:17px}.card p{color:var(--muted);margin:0}.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.step{position:relative;padding:18px 14px;background:var(--card);border:1px solid var(--line);min-height:110px}.step b{display:block;margin-bottom:12px}.step span{font-size:13px;color:var(--muted)}.step:not(:last-child)::after{content:'→';position:absolute;right:-11px;top:40px;color:var(--accent2);font-weight:900;z-index:2}.copy{margin-top:14px}.copy pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f7f5ef;border:1px solid var(--line);padding:18px;margin:0;font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.copy h3{margin-top:0}.badge{display:inline-block;border:1px solid var(--accent);color:var(--accent);padding:5px 9px;border-radius:999px;font:700 11px/1 ui-monospace,monospace}.pending{border-color:#d3a35f;color:var(--warn)}.links{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.link{padding:18px;background:var(--card);border:1px solid var(--line)}.link small{display:block;color:var(--muted)}.note{border-left:4px solid var(--accent2);background:#f4dfd4;padding:16px 18px;margin-top:18px}.footer{margin-top:70px;color:var(--muted);font-size:13px}@media(max-width:820px){.hero,.section-head{grid-template-columns:1fr}.grid,.links{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.step:not(:last-child)::after{content:'↓';right:auto;left:24px;top:auto;bottom:-18px}.status{min-height:360px}}
+  </style>
+</head>
+<body><main class="page">
+  <div class="eyebrow">A weekend experiment · launch control room</div>
+  <section class="hero">
+    <div class="hero-copy"><h1>Your PR passes.<br><em>What about the next one?</em></h1><p class="lede">EvolveCI runs the same maintainer-chosen follow-up task against base and head, then compares the patches the agent had to make.</p></div>
+    <aside class="status"><div><span class="label">Deterministic demo</span><div class="proof">1→4</div><p>changed files per scenario</p></div><div><strong>Green today.<br>Costlier tomorrow.</strong><div class="nav"><a href="https://github.com/abhid1234/evolveci">code</a><a href="#copy">copy</a><a href="#readiness">readiness</a></div></div></aside>
+  </section>
+
+  <section class="section"><div class="section-head"><div class="label">01 · the gap</div><h2>Current correctness is not future change cost.</h2></div><div class="grid"><article class="card"><h3>Both sides pass</h3><p>The demo preserves the same admin and member behavior on base and head.</p></article><article class="card"><h3>The structure diverges</h3><p>The base keeps one role registry. The head spreads the same rule across conditionals.</p></article><article class="card"><h3>The next task exposes it</h3><p>Three ordinary role additions need one file on base and four on head.</p></article></div></section>
+
+  <section class="section"><div class="section-head"><div class="label">02 · mechanism</div><h2>A design claim becomes an executable comparison.</h2></div><div class="flow"><div class="step"><b>choose</b><span>maintainer-owned follow-up</span></div><div class="step"><b>isolate</b><span>detached base + head worktrees</span></div><div class="step"><b>run</b><span>same agent and prompt</span></div><div class="step"><b>verify</b><span>deterministic post-condition</span></div><div class="step"><b>measure</b><span>patch, time, tokens, failures</span></div><div class="step"><b>review</b><span>raw evidence, not a score</span></div></div></section>
+
+  <section class="section" id="copy"><div class="section-head"><div class="label">03 · launch copy</div><h2>Copy-ready drafts.</h2></div>
+    <article class="card copy"><h3>X</h3><pre>Your PR passes. Did it make the *next* change harder?
+
+EvolveCI runs a follow-up on base + head, then compares the patches. Demo: 1 file vs 4. No opaque AI score—just evidence.
+
+https://github.com/abhid1234/evolveci?utm_source=twitter&amp;utm_medium=post&amp;utm_campaign=evolveci-launch</pre></article>
+    <article class="card copy"><h3>LinkedIn hook</h3><pre>Your pull request passes every test. Did it quietly make the next change harder?
+
+That question nerd-sniped me, so over a few weekends I built EvolveCI—an experiment in counterfactual CI.
+
+A maintainer defines a plausible follow-up task and deterministic verifier. EvolveCI runs the same task against base and head, then compares the patches the agent had to make.
+
+The demo: same current behavior, but the next role takes one changed file on base and four on the coupled head. Green today; more expensive tomorrow.
+
+It is rough and early. I would love people to poke holes in the scenario model.</pre></article>
+    <article class="card copy"><h3>Show HN</h3><pre>Show HN: EvolveCI – test whether a PR makes the next change harder
+
+https://github.com/abhid1234/evolveci?utm_source=hackernews&amp;utm_medium=post&amp;utm_campaign=evolveci-launch
+
+EvolveCI runs a repository-owned future-change probe against base and head in detached worktrees, then compares success, patch evidence, duration, dependencies, variability, and failures. The demo is deterministic and illustrative; the alpha is explicit about its limits.</pre></article>
+  </section>
+
+  <section class="section" id="readiness"><div class="section-head"><div class="label">04 · readiness</div><h2>What is live—and what is not.</h2></div><div class="links"><div class="link"><span class="badge">live</span><h3>Code</h3><small>github.com/abhid1234/evolveci</small></div><div class="link"><span class="badge">green</span><h3>Cross-platform CI</h3><small>Node 20/22/24 · macOS · Windows</small></div><div class="link"><span class="badge pending">pending</span><h3>npm + release</h3><small>Do not post install copy yet</small></div><div class="link"><span class="badge pending">pending</span><h3>Demo + essay</h3><small>Add final public URLs after publishing</small></div></div><p class="note"><strong>Launch gate:</strong> The drafts are ready, but npm, a GitHub release, a public demo URL, and the Substack URL must be independently verified before posting.</p></section>
+
+  <footer class="footer">EvolveCI reports evidence for selected future-change probes. It does not predict future requirements. Nothing in this launch kit auto-posts or publishes.</footer>
+</main></body></html>
