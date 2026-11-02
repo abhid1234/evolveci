@@ -202,7 +202,7 @@ Worktree isolation is not a security sandbox. Before running untrusted agents or
 6. Add a label-triggered GitHub Action that uploads the evidence bundle.
 7. Validate on public repositories before building a hosted product.
 
-See [the executable specification](docs/SPEC.md) and [implementation plan](docs/IMPLEMENTATION_PLAN.md).
+See the [executable specification](docs/SPEC.md), [implementation plan](docs/IMPLEMENTATION_PLAN.md), [agent adapter contract](docs/ADAPTERS.md), [release runbook](docs/RELEASE.md), [demo guide](demo/README.md), [contributing guide](CONTRIBUTING.md), [security policy](SECURITY.md), and [changelog](CHANGELOG.md).
 
 ## License
 
