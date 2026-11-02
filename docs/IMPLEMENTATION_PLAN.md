@@ -31,7 +31,7 @@
 - [ ] Add cost estimates only after model identity and pricing can be verified.
 - [ ] Add a Claude Code adapter.
 - [x] Add run repetition, counterbalanced pair ordering, medians, dispersion, and confidence-based inconclusive results.
-- [ ] Add retry classification without hiding failures.
+- [x] Add retry classification without hiding failures or automatically rerunning attempts.
 
 ## Milestone 4 — isolation and CI
 

@@ -6,6 +6,7 @@ import test from "node:test";
 import { runCommand } from "../src/process.js";
 import { runComparison } from "../src/runner.js";
 import type { CommandSpec, EvolveConfig } from "../src/types.js";
+import { reportV2ValidationError } from "./report-schema-helper.js";
 
 async function command(cwd: string, argv: CommandSpec): Promise<string> {
   const result = await runCommand({ command: argv, cwd, timeoutMs: 10_000 });
@@ -85,11 +86,60 @@ test("runComparison evaluates detached base and head worktrees", async () => {
     });
     assert.equal(report.conclusion, "warning");
     assert.equal(report.runs.length, 4);
-    assert.equal(report.runs.find((run) => run.side === "base")?.metrics.filesChanged, 1);
-    assert.equal(report.runs.find((run) => run.side === "head")?.metrics.filesChanged, 2);
+    assert.equal(report.runs.find((run) => run.side === "base")?.metrics?.filesChanged, 1);
+    assert.equal(report.runs.find((run) => run.side === "head")?.metrics?.filesChanged, 2);
     assert.equal(await readFile(orderLog, "utf8"), "base:1\nhead:1\nhead:2\nbase:2\n");
+    assert.deepEqual(JSON.parse(await readFile(path.join(output, "report.json"), "utf8")), report);
     assert.match(await readFile(path.join(output, "report.md"), "utf8"), /EvolveCI: warning/);
     assert.doesNotMatch(await readFile(path.join(repo, "app.js"), "utf8"), /future/);
+
+    const singleAttemptConfig: EvolveConfig = {
+      ...config,
+      execution: { ...config.execution, repetitions: 1 },
+    };
+    await writeFile(
+      path.join(tools, "agent.mjs"),
+      'import { writeFile } from "node:fs/promises";\n' +
+        'if (process.env.EVOLVECI_SIDE === "base") setInterval(() => {}, 1_000);\n' +
+        'else { await writeFile("future.js", "export const future = true;\\n"); await writeFile("package.json", "{invalid json\\n"); }\n',
+    );
+    const failureOutput = path.join(root, "failure-evidence");
+    const failureReport = await runComparison({
+      repository: repo,
+      base,
+      head: "HEAD",
+      config: {
+        ...singleAttemptConfig,
+        scenarios: [{ ...singleAttemptConfig.scenarios[0]!, verify: [path.join(tools, "missing-verifier")], timeoutMs: 200 }],
+      },
+      outputDir: failureOutput,
+    });
+    assert.equal(failureReport.conclusion, "inconclusive");
+    assert.equal(failureReport.runs.length, 2);
+    const baseFailure = failureReport.runs.find((run) => run.side === "base")?.failure;
+    assert.deepEqual(baseFailure && { stage: baseFailure.stage, reason: baseFailure.reason, retryable: baseFailure.retryable }, {
+      stage: "agent",
+      reason: "timeout",
+      retryable: true,
+    });
+    const headFailure = failureReport.runs.find((run) => run.side === "head")?.failure;
+    assert.deepEqual(headFailure && { stage: headFailure.stage, reason: headFailure.reason, retryable: headFailure.retryable }, {
+      stage: "verifier",
+      reason: "launch-error",
+      retryable: false,
+    });
+    assert.equal(failureReport.runs.find((run) => run.side === "head")?.metricsError, "Change metrics could not be collected for this failed attempt.");
+    const failureMarkdown = await readFile(path.join(failureOutput, "report.md"), "utf8");
+    assert.match(failureMarkdown, /1 retryable \/ 0 terminal \| 0 retryable \/ 1 terminal/);
+    assert.equal(failureMarkdown.match(/no automatic retry was performed/g)?.length, 2);
+    assert.match(failureMarkdown, /Change metrics could not be collected/);
+    assert.match(await readFile(path.join(failureOutput, "report.html"), "utf8"), /Failed attempts/);
+    assert.equal(
+      await reportV2ValidationError(JSON.parse(await readFile(path.join(failureOutput, "report.json"), "utf8"))),
+      null,
+    );
+    assert.match(await readFile(path.join(failureOutput, "logs", "future-change", "head", "attempt-1", "metrics.error.log"), "utf8"), /JSON/);
+
     const sameEvidence = path.join(root, "same-evidence");
     await assert.rejects(
       () => runComparison({ repository: repo, base, head: base, config, outputDir: sameEvidence }),

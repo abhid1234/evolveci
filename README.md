@@ -24,6 +24,7 @@ flowchart LR
 The alpha measures:
 
 - probe success or failure;
+- explicit failure stage, cause, and retryability without automatic retries;
 - agent and verifier duration;
 - files and lines changed;
 - total patch churn;
@@ -175,6 +176,10 @@ Each run produces:
 
 The report is deliberately decomposable. Reviewers can see which scenario regressed, the exact metric, both values, verifier output, and agent logs.
 
+Failed attempts remain failures. EvolveCI classifies timeouts and transient termination or resource-exhaustion errors as retryable, while deterministic crashes, nonzero exits, and configuration-related launch failures are terminal. It reports both counts per side, but never reruns an attempt automatically or removes it from the success rate. Logs are persisted before metric collection, and unavailable metrics are represented as `null` rather than fabricated zeroes, so malformed output from a failed attempt cannot erase or misstate its evidence.
+
+Machine consumers should choose the immutable schema matching `schemaVersion`: [`schemas/report.schema.json`](schemas/report.schema.json) for v1 or [`schemas/report-v2.schema.json`](schemas/report-v2.schema.json) for v2. EvolveCI `0.1.0-rc.2` emits v2 reports while continuing to package the v1 validator for stored evidence.
+
 ## Safety boundaries
 
 - Agent and verifier commands use `spawn(..., { shell: false })`.
@@ -189,6 +194,7 @@ The report is deliberately decomposable. Reviewers can see which scenario regres
 - Repeated runs use medians and become inconclusive when duration variance exceeds the configured limit.
 - Repeated pairs are counterbalanced: odd attempts run base then head, while even attempts run head then base to reduce systematic execution-order bias.
 - Base and head must resolve to different commits; EvolveCI rejects same-revision comparisons instead of emitting meaningless evidence.
+- Failure classification is diagnostic only: retryable attempts remain visible failures and are never silently rerun.
 
 Worktree isolation is not a security sandbox. Before running untrusted agents or repositories, the next milestone is container or microVM isolation with explicit network, CPU, memory, and filesystem policies.
 

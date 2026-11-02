@@ -1,6 +1,6 @@
 {
   "name": "@avee1234/evolveci",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "description": "Counterfactual evolvability testing for pull requests.",
   "type": "module",
   "bin": {
@@ -42,6 +42,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.18.6",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "typescript": "^5.9.2"
   },
   "license": "Apache-2.0",

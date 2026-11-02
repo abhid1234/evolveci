@@ -21,6 +21,16 @@ export interface RunCommandOptions {
   stdin?: string;
 }
 
+export class CommandLaunchError extends Error {
+  readonly code: string | undefined;
+
+  constructor(error: NodeJS.ErrnoException) {
+    super(error.message, { cause: error });
+    this.name = "CommandLaunchError";
+    this.code = error.code;
+  }
+}
+
 export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
   const [executable, ...args] = options.command;
   const startedAt = performance.now();
@@ -33,6 +43,10 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
       shell: false,
       detached: ownsProcessGroup,
       stdio: [options.stdin === undefined ? "ignore" : "pipe", "pipe", "pipe"],
+    });
+    let spawned = false;
+    child.once("spawn", () => {
+      spawned = true;
     });
 
     const signalProcess = (signal: NodeJS.Signals): void => {
@@ -75,7 +89,7 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
       if (error.code !== "EPIPE" && error.code !== "ERR_STREAM_DESTROYED") reject(error);
     });
     if (options.stdin !== undefined) child.stdin?.end(options.stdin);
-    child.on("error", reject);
+    child.once("error", (error: NodeJS.ErrnoException) => reject(spawned ? error : new CommandLaunchError(error)));
     child.on("close", (exitCode, signal) => {
       if (timer) clearTimeout(timer);
       if (forceKill) clearTimeout(forceKill);
@@ -96,6 +110,7 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
         stderr,
         stdoutTruncated,
         stderrTruncated,
+        launchErrorCode: null,
       });
     });
   });

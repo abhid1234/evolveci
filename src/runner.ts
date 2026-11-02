@@ -1,13 +1,35 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { collectChangeMetrics, createWorktree, readDependencies, resolveRevision } from "./git.js";
-import { runCommand } from "./process.js";
+import { classifyRunFailure } from "./failure.js";
+import { CommandLaunchError, runCommand } from "./process.js";
 import { evaluateRuns, renderMarkdown } from "./report.js";
 import { renderHtml } from "./html.js";
 import { parseCodexJsonlTelemetry } from "./telemetry.js";
-import type { ComparisonReport, CommandResult, EvolveConfig, RunSide, ScenarioConfig, ScenarioRun } from "./types.js";
+import type { RunCommandOptions } from "./process.js";
+import type { ChangeMetrics, ComparisonReport, CommandResult, EvolveConfig, RunSide, ScenarioConfig, ScenarioRun, SkippedVerifierResult } from "./types.js";
 
-function skippedVerifier(agent: CommandResult): CommandResult {
+async function runAttemptCommand(options: RunCommandOptions): Promise<CommandResult> {
+  try {
+    return await runCommand(options);
+  } catch (error) {
+    if (!(error instanceof CommandLaunchError)) throw error;
+    return {
+      command: [...options.command],
+      exitCode: null,
+      signal: null,
+      timedOut: false,
+      durationMs: 0,
+      stdout: "",
+      stderr: error instanceof Error ? error.message : "Command could not be started.",
+      stdoutTruncated: false,
+      stderrTruncated: false,
+      launchErrorCode: error.code ?? null,
+    };
+  }
+}
+
+function skippedVerifier(agent: CommandResult): SkippedVerifierResult {
   return {
     command: [],
     exitCode: null,
@@ -18,18 +40,27 @@ function skippedVerifier(agent: CommandResult): CommandResult {
     stderr: `Verifier skipped because agent exited with ${agent.exitCode ?? agent.signal ?? "unknown status"}.`,
     stdoutTruncated: false,
     stderrTruncated: false,
+    launchErrorCode: null,
   };
 }
 
-async function writeCommandLog(outputDir: string, run: ScenarioRun): Promise<void> {
-  const runDir = path.join(outputDir, "logs", run.scenarioId, run.side, `attempt-${run.attempt}`);
+async function writeCommandLog(
+  outputDir: string,
+  scenarioId: string,
+  side: RunSide,
+  attempt: number,
+  agent: CommandResult,
+  verifier: CommandResult,
+): Promise<string> {
+  const runDir = path.join(outputDir, "logs", scenarioId, side, `attempt-${attempt}`);
   await mkdir(runDir, { recursive: true });
   await Promise.all([
-    writeFile(path.join(runDir, "agent.stdout.log"), run.agent.stdout),
-    writeFile(path.join(runDir, "agent.stderr.log"), run.agent.stderr),
-    writeFile(path.join(runDir, "verifier.stdout.log"), run.verifier?.stdout ?? ""),
-    writeFile(path.join(runDir, "verifier.stderr.log"), run.verifier?.stderr ?? ""),
+    writeFile(path.join(runDir, "agent.stdout.log"), agent.stdout),
+    writeFile(path.join(runDir, "agent.stderr.log"), agent.stderr),
+    writeFile(path.join(runDir, "verifier.stdout.log"), verifier.stdout),
+    writeFile(path.join(runDir, "verifier.stderr.log"), verifier.stderr),
   ]);
+  return runDir;
 }
 
 async function runScenario(
@@ -74,7 +105,7 @@ async function runScenario(
       ...scenarioEnvironment,
       ...(config.agent.promptTransport === "environment" ? { EVOLVECI_PROMPT: scenario.prompt } : {}),
     };
-    const agent = await runCommand({
+    const agent = await runAttemptCommand({
       command: config.agent.command,
       cwd: worktree.path,
       timeoutMs: scenario.timeoutMs ?? config.agent.timeoutMs ?? 600_000,
@@ -84,7 +115,7 @@ async function runScenario(
     });
     const verifier =
       agent.exitCode === 0 && !agent.timedOut
-        ? await runCommand({
+        ? await runAttemptCommand({
             command: scenario.verify,
             cwd: worktree.path,
             timeoutMs: scenario.timeoutMs ?? 300_000,
@@ -92,21 +123,39 @@ async function runScenario(
             inheritEnv: config.agent.inheritEnvironment,
           })
         : skippedVerifier(agent);
-    const run: ScenarioRun = {
+    const success = agent.exitCode === 0 && verifier.exitCode === 0 && !agent.timedOut && !verifier.timedOut;
+    const failure = success ? null : classifyRunFailure(agent, verifier);
+    if (!success && failure === null) {
+      throw new Error(`failed run for ${scenario.id}/${side}/attempt-${attempt} could not be classified`);
+    }
+    const runDir = await writeCommandLog(outputDir, scenario.id, side, attempt, agent, verifier);
+    let metrics: ChangeMetrics | null;
+    let metricsError: string | null = null;
+    try {
+      metrics = await collectChangeMetrics(worktree.path, beforeDependencies);
+    } catch (error) {
+      if (success) throw error;
+      metrics = null;
+      metricsError = "Change metrics could not be collected for this failed attempt.";
+      await writeFile(path.join(runDir, "metrics.error.log"), error instanceof Error ? error.message : String(error));
+    }
+    const evidence = {
       scenarioId: scenario.id,
       side,
       attempt,
       revision,
-      success: agent.exitCode === 0 && verifier.exitCode === 0 && !agent.timedOut && !verifier.timedOut,
       agent,
       verifier,
       telemetry:
         config.agent.telemetryFormat === "codex-jsonl"
           ? parseCodexJsonlTelemetry(agent.stdout, agent.stdoutTruncated)
           : null,
-      metrics: await collectChangeMetrics(worktree.path, beforeDependencies),
+      metrics,
+      metricsError,
     };
-    await writeCommandLog(outputDir, run);
+    const run = (success
+      ? { ...evidence, success: true, failure: null }
+      : { ...evidence, success: false, failure: failure! }) as ScenarioRun;
     return run;
   } finally {
     await worktree.dispose();
