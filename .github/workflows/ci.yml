@@ -26,7 +26,7 @@ jobs:
       - run: npm run demo
       - run: node scripts/verify-package.mjs
       - if: matrix.node == 24
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evolveci-demo-evidence
           path: demo/output/
