@@ -25,25 +25,14 @@ const config: EvolveConfig = {
   scenarios: [{ id: "probe", prompt: "Probe", verify: ["verify"] }],
 };
 
+function run(side: "base" | "head", filesChanged: number, success?: true): Extract<ScenarioRun, { success: true }>;
+function run(side: "base" | "head", filesChanged: number, success: false): Extract<ScenarioRun, { failure: { stage: "agent"; reason: "exit-code" } }>;
 function run(side: "base" | "head", filesChanged: number, success = true): ScenarioRun {
-  return {
+  const evidence = {
     scenarioId: "probe",
     side,
     attempt: 1,
     revision: side,
-    success,
-    agent: {
-      command: ["agent"],
-      exitCode: success ? 0 : 1,
-      signal: null,
-      timedOut: false,
-      durationMs: 100,
-      stdout: "",
-      stderr: "",
-      stdoutTruncated: false,
-      stderrTruncated: false,
-    },
-    verifier: null,
     telemetry: null,
     metrics: {
       filesChanged,
@@ -55,7 +44,36 @@ function run(side: "base" | "head", filesChanged: number, success = true): Scena
       dependenciesChanged: [],
       changedPaths: [],
     },
+    metricsError: null,
   };
+  return success
+    ? {
+        ...evidence,
+        success: true,
+        failure: null,
+        agent: {
+          command: ["agent"], exitCode: 0, signal: null, timedOut: false, durationMs: 100,
+          stdout: "", stderr: "", stdoutTruncated: false, stderrTruncated: false, launchErrorCode: null,
+        },
+        verifier: {
+          command: ["verify"], exitCode: 0, signal: null, timedOut: false, durationMs: 10,
+          stdout: "", stderr: "", stdoutTruncated: false, stderrTruncated: false, launchErrorCode: null,
+        },
+      }
+    : {
+        ...evidence,
+        success: false,
+        failure: { stage: "agent", reason: "exit-code", retryable: false, summary: "Agent exited with code 1." },
+        agent: {
+          command: ["agent"], exitCode: 1, signal: null, timedOut: false, durationMs: 100,
+          stdout: "", stderr: "failed", stdoutTruncated: false, stderrTruncated: false, launchErrorCode: null,
+        },
+        verifier: {
+          command: [], exitCode: null, signal: null, timedOut: false, durationMs: 0,
+          stdout: "", stderr: "Verifier skipped because the agent failed.", stdoutTruncated: false,
+          stderrTruncated: false, launchErrorCode: null,
+        },
+      };
 }
 
 test("evaluateRuns warns when head needs more files", () => {
@@ -156,4 +174,20 @@ test("evaluateRuns warns on verified token increases", () => {
   const report = evaluateRuns("repo", "base", "head", tokenConfig, [base, head]);
   assert.equal(report.conclusion, "warning");
   assert.equal(report.findings[0]?.metric, "totalTokens");
+});
+
+test("evaluateRuns exposes retryable failures without hiding them", () => {
+  const timedOut: ScenarioRun = {
+    ...run("head", 0, false),
+    success: false,
+    failure: { stage: "agent", reason: "timeout", retryable: true, summary: "Agent timed out after 100 ms." },
+    agent: { ...run("head", 0, false).agent, exitCode: null, signal: "SIGTERM" as const, timedOut: true },
+  };
+  const report = evaluateRuns("repo", "base", "head", config, [run("base", 0, false), timedOut]);
+  assert.equal(report.conclusion, "inconclusive");
+  assert.equal(report.summaries[0]?.head.retryableFailures, 1);
+  assert.equal(report.summaries[0]?.base.terminalFailures, 1);
+  assert.match(renderMarkdown(report), /1 retryable \/ 0 terminal/);
+  assert.match(renderMarkdown(report), /head · attempt 1.*retryable.*no automatic retry/);
+  assert.match(report.findings[0]?.message ?? "", /not automatically retried/);
 });

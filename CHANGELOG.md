@@ -2,6 +2,20 @@
 
 All notable changes to EvolveCI are documented here. The format follows Keep a Changelog and versions follow Semantic Versioning.
 
+## [0.1.0-rc.2] - 2026-11-01
+
+### Added
+
+- Failed agent and verifier attempts now expose stage, cause, retryability, per-side counts, and a no-retry ledger in JSON, Markdown, and offline HTML reports.
+- Immutable schema v2 validation with reason-specific invariants, preserved schema v1 support, and migration documentation.
+
+### Changed
+
+- Missing executables are recorded as terminal launch failures instead of aborting a comparison.
+- Command logs are persisted before metric analysis, and failed attempts use `null` metrics plus explicit error evidence when their output cannot be analyzed.
+- Retryability separates transient termination or resource-exhaustion failures from deterministic crashes and configuration errors.
+- Offline reports now spell out failure classifications, surface failed-attempt totals, and keep scenario context visible in wide tables.
+
 ## [0.1.0-rc.1] - 2026-11-01
 
 ### Added
@@ -27,4 +41,5 @@ All notable changes to EvolveCI are documented here. The format follows Keep a C
 - Repeated pairs now alternate base/head execution order to reduce systematic warm-cache and machine-order bias.
 - Same-revision comparisons now fail closed before creating evidence output or detached worktrees.
 
+[0.1.0-rc.2]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0-rc.1

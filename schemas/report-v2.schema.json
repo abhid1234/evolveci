@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evolveci.dev/schemas/report-v2.schema.json",
+  "title": "EvolveCI comparison report v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "repository", "baseRevision", "headRevision", "conclusion", "findings", "summaries", "runs"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "repository": { "type": "string" },
+    "baseRevision": { "type": "string", "minLength": 7 },
+    "headRevision": { "type": "string", "minLength": 7 },
+    "conclusion": { "enum": ["pass", "warning", "inconclusive"] },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "summaries": { "type": "array", "items": { "$ref": "#/$defs/summary" } },
+    "runs": { "type": "array", "items": { "$ref": "#/$defs/run" } }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "severity", "metric", "message"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "severity": { "enum": ["improvement", "info", "warning", "critical"] },
+        "metric": { "type": "string" },
+        "message": { "type": "string" },
+        "baseValue": { "type": ["number", "boolean"] },
+        "headValue": { "type": ["number", "boolean"] }
+      }
+    },
+    "metricSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["successRate", "retryableFailures", "terminalFailures", "medianDurationMs", "medianFilesChanged", "medianChurn", "medianTestFilesChanged", "medianDependenciesAdded", "medianDependenciesChanged", "durationCoefficientOfVariationPercent", "medianTotalTokens"],
+      "properties": {
+        "successRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "retryableFailures": { "type": "integer", "minimum": 0 },
+        "terminalFailures": { "type": "integer", "minimum": 0 },
+        "medianDurationMs": { "type": ["number", "null"] },
+        "medianFilesChanged": { "type": ["number", "null"] },
+        "medianChurn": { "type": ["number", "null"] },
+        "medianTestFilesChanged": { "type": ["number", "null"] },
+        "medianDependenciesAdded": { "type": ["number", "null"] },
+        "medianDependenciesChanged": { "type": ["number", "null"] },
+        "durationCoefficientOfVariationPercent": { "type": ["number", "null"] },
+        "medianTotalTokens": { "type": ["number", "null"] }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "status", "base", "head"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "status": { "enum": ["comparable", "improved", "regressed", "inconclusive"] },
+        "base": { "$ref": "#/$defs/metricSummary" },
+        "head": { "$ref": "#/$defs/metricSummary" }
+      }
+    },
+    "commandResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "exitCode", "signal", "timedOut", "durationMs", "stdout", "stderr", "stdoutTruncated", "stderrTruncated", "launchErrorCode"],
+      "properties": {
+        "command": { "type": "array", "items": { "type": "string" } },
+        "exitCode": { "type": ["integer", "null"] },
+        "signal": { "type": ["string", "null"] },
+        "timedOut": { "type": "boolean" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "stdout": { "type": "string" },
+        "stderr": { "type": "string" },
+        "stdoutTruncated": { "type": "boolean" },
+        "stderrTruncated": { "type": "boolean" },
+        "launchErrorCode": { "type": ["string", "null"] }
+      }
+    },
+    "successfulCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        { "type": "object", "properties": { "exitCode": { "const": 0 }, "signal": { "type": "null" }, "timedOut": { "const": false }, "launchErrorCode": { "type": "null" } } }
+      ]
+    },
+    "timeoutCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        { "type": "object", "properties": { "timedOut": { "const": true }, "launchErrorCode": { "type": "null" } } }
+      ]
+    },
+    "signalCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        { "type": "object", "properties": { "exitCode": { "type": "null" }, "signal": { "type": "string" }, "timedOut": { "const": false }, "launchErrorCode": { "type": "null" } } }
+      ]
+    },
+    "transientSignalCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/signalCommand" },
+        { "type": "object", "properties": { "signal": { "enum": ["SIGHUP", "SIGINT", "SIGKILL", "SIGTERM"] } } }
+      ]
+    },
+    "terminalSignalCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/signalCommand" },
+        { "type": "object", "properties": { "signal": { "not": { "enum": ["SIGHUP", "SIGINT", "SIGKILL", "SIGTERM"] } } } }
+      ]
+    },
+    "exitCodeCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        { "type": "object", "properties": { "exitCode": { "type": "integer", "not": { "const": 0 } }, "signal": { "type": "null" }, "timedOut": { "const": false }, "launchErrorCode": { "type": "null" } } }
+      ]
+    },
+    "launchErrorCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        { "type": "object", "properties": { "exitCode": { "type": "null" }, "signal": { "type": "null" }, "timedOut": { "const": false }, "stderr": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "transientLaunchErrorCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/launchErrorCommand" },
+        { "type": "object", "properties": { "launchErrorCode": { "enum": ["EAGAIN", "EMFILE", "ENFILE", "ENOMEM", "ETXTBSY"] } } }
+      ]
+    },
+    "terminalLaunchErrorCommand": {
+      "allOf": [
+        { "$ref": "#/$defs/launchErrorCommand" },
+        { "type": "object", "properties": { "launchErrorCode": { "not": { "enum": ["EAGAIN", "EMFILE", "ENFILE", "ENOMEM", "ETXTBSY"] } } } }
+      ]
+    },
+    "skippedVerifier": {
+      "allOf": [
+        { "$ref": "#/$defs/commandResult" },
+        {
+          "type": "object",
+          "properties": {
+            "command": { "type": "array", "maxItems": 0 },
+            "exitCode": { "type": "null" },
+            "signal": { "type": "null" },
+            "timedOut": { "const": false },
+            "durationMs": { "const": 0 },
+            "stdout": { "const": "" },
+            "stderr": { "type": "string", "minLength": 1 },
+            "launchErrorCode": { "type": "null" }
+          }
+        }
+      ]
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "turns", "inputTokens", "cachedInputTokens", "cacheWriteInputTokens", "outputTokens", "reasoningOutputTokens", "totalTokens"],
+      "properties": {
+        "source": { "const": "codex-jsonl" },
+        "turns": { "type": "integer", "minimum": 1 },
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "cachedInputTokens": { "type": "integer", "minimum": 0 },
+        "cacheWriteInputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "reasoningOutputTokens": { "type": "integer", "minimum": 0 },
+        "totalTokens": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "changeMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filesChanged", "linesAdded", "linesDeleted", "churn", "testFilesChanged", "dependenciesAdded", "dependenciesChanged", "changedPaths"],
+      "properties": {
+        "filesChanged": { "type": "integer", "minimum": 0 },
+        "linesAdded": { "type": "integer", "minimum": 0 },
+        "linesDeleted": { "type": "integer", "minimum": 0 },
+        "churn": { "type": "integer", "minimum": 0 },
+        "testFilesChanged": { "type": "integer", "minimum": 0 },
+        "dependenciesAdded": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "dependenciesChanged": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "changedPaths": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "runFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "reason", "retryable", "summary"],
+      "properties": {
+        "stage": { "enum": ["agent", "verifier"] },
+        "reason": { "enum": ["timeout", "signal", "exit-code", "launch-error"] },
+        "retryable": { "type": "boolean" },
+        "summary": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "reason": { "const": "timeout" } }, "required": ["reason"] },
+          "then": { "properties": { "retryable": { "const": true } } }
+        },
+        {
+          "if": { "properties": { "reason": { "const": "exit-code" } }, "required": ["reason"] },
+          "then": { "properties": { "retryable": { "const": false } } }
+        }
+      ]
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "side", "attempt", "revision", "success", "failure", "agent", "verifier", "telemetry", "metrics", "metricsError"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "side": { "enum": ["base", "head"] },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "revision": { "type": "string", "minLength": 7 },
+        "success": { "type": "boolean" },
+        "failure": { "anyOf": [{ "$ref": "#/$defs/runFailure" }, { "type": "null" }] },
+        "agent": { "$ref": "#/$defs/commandResult" },
+        "verifier": { "anyOf": [{ "$ref": "#/$defs/commandResult" }, { "type": "null" }] },
+        "telemetry": { "anyOf": [{ "$ref": "#/$defs/telemetry" }, { "type": "null" }] },
+        "metrics": { "anyOf": [{ "$ref": "#/$defs/changeMetrics" }, { "type": "null" }] },
+        "metricsError": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "success": { "const": true } }, "required": ["success"] },
+          "then": {
+            "properties": {
+              "failure": { "type": "null" },
+              "agent": { "$ref": "#/$defs/successfulCommand" },
+              "verifier": { "$ref": "#/$defs/successfulCommand" },
+              "metrics": { "$ref": "#/$defs/changeMetrics" },
+              "metricsError": { "type": "null" }
+            }
+          },
+          "else": { "properties": { "failure": { "$ref": "#/$defs/runFailure" } } }
+        },
+        {
+          "if": { "properties": { "metrics": { "type": "null" } }, "required": ["metrics"] },
+          "then": { "properties": { "metricsError": { "type": "string", "minLength": 1 } } },
+          "else": { "properties": { "metricsError": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "agent" }, "reason": { "const": "timeout" } }, "required": ["stage", "reason"] } } },
+          "then": { "properties": { "agent": { "$ref": "#/$defs/timeoutCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "agent" }, "reason": { "const": "signal" } }, "required": ["stage", "reason"] } } },
+          "then": {
+            "oneOf": [
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": true } } }, "agent": { "$ref": "#/$defs/transientSignalCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } },
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": false } } }, "agent": { "$ref": "#/$defs/terminalSignalCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "agent" }, "reason": { "const": "exit-code" } }, "required": ["stage", "reason"] } } },
+          "then": { "properties": { "agent": { "$ref": "#/$defs/exitCodeCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "agent" }, "reason": { "const": "launch-error" } }, "required": ["stage", "reason"] } } },
+          "then": {
+            "oneOf": [
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": true } } }, "agent": { "$ref": "#/$defs/transientLaunchErrorCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } },
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": false } } }, "agent": { "$ref": "#/$defs/terminalLaunchErrorCommand" }, "verifier": { "$ref": "#/$defs/skippedVerifier" } } }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "verifier" }, "reason": { "const": "timeout" } }, "required": ["stage", "reason"] } } },
+          "then": { "properties": { "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/timeoutCommand" } } }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "verifier" }, "reason": { "const": "signal" } }, "required": ["stage", "reason"] } } },
+          "then": {
+            "oneOf": [
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": true } } }, "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/transientSignalCommand" } } },
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": false } } }, "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/terminalSignalCommand" } } }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "verifier" }, "reason": { "const": "exit-code" } }, "required": ["stage", "reason"] } } },
+          "then": { "properties": { "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/exitCodeCommand" } } }
+        },
+        {
+          "if": { "properties": { "failure": { "type": "object", "properties": { "stage": { "const": "verifier" }, "reason": { "const": "launch-error" } }, "required": ["stage", "reason"] } } },
+          "then": {
+            "oneOf": [
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": true } } }, "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/transientLaunchErrorCommand" } } },
+              { "properties": { "failure": { "type": "object", "properties": { "retryable": { "const": false } } }, "agent": { "$ref": "#/$defs/successfulCommand" }, "verifier": { "$ref": "#/$defs/terminalLaunchErrorCommand" } } }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

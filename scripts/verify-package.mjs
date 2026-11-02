@@ -15,7 +15,7 @@ try {
   const [pack] = JSON.parse(stdout);
   const paths = new Set(pack.files.map((file) => file.path));
 
-  for (const required of ["package.json", "README.md", "CHANGELOG.md", "LICENSE", "docs/ADAPTERS.md", "docs/RELEASE.md", "dist/src/cli.js", "schemas/config.schema.json", "schemas/report.schema.json"]) {
+  for (const required of ["package.json", "README.md", "CHANGELOG.md", "LICENSE", "docs/ADAPTERS.md", "docs/RELEASE.md", "dist/src/cli.js", "schemas/config.schema.json", "schemas/report.schema.json", "schemas/report-v2.schema.json"]) {
     assert(paths.has(required), `package is missing ${required}`);
   }
   for (const file of paths) {

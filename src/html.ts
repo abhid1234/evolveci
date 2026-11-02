@@ -18,12 +18,18 @@ function metric(value: number | null): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
+function failures(summary: ScenarioSummary["base"]): string {
+  return `${summary.retryableFailures} retryable / ${summary.terminalFailures} terminal`;
+}
+
 function scenarioRow(summary: ScenarioSummary): string {
   return `<tr>
     <th scope="row">${escapeHtml(summary.scenarioId)}</th>
     <td><span class="status status-${summary.status}">${summary.status}</span></td>
     <td>${(summary.base.successRate * 100).toFixed(0)}%</td>
     <td>${(summary.head.successRate * 100).toFixed(0)}%</td>
+    <td>${failures(summary.base)}</td>
+    <td>${failures(summary.head)}</td>
     <td>${metric(summary.base.medianFilesChanged)}</td>
     <td>${metric(summary.head.medianFilesChanged)}</td>
     <td>${metric(summary.base.medianChurn)}</td>
@@ -40,6 +46,16 @@ function findingItem(finding: Finding): string {
   </li>`;
 }
 
+function failureItem(run: ComparisonReport["runs"][number]): string {
+  const failure = run.failure;
+  if (!failure) return "";
+  const classification = failure.retryable ? "retryable" : "terminal";
+  return `<li class="finding finding-${failure.retryable ? "info" : "warning"}">
+    <div class="finding-meta">${escapeHtml(run.scenarioId)} · ${run.side} · attempt ${run.attempt} · ${classification}</div>
+    <div>${escapeHtml(failure.summary)} No automatic retry was performed.${run.metricsError ? ` ${escapeHtml(run.metricsError)}` : ""}</div>
+  </li>`;
+}
+
 export function renderHtml(report: ComparisonReport): string {
   const warningCount = report.findings.filter((finding) => finding.severity === "warning" || finding.severity === "critical").length;
   const comparableCount = report.summaries.filter((summary) => summary.status === "comparable" || summary.status === "improved").length;
@@ -48,6 +64,8 @@ export function renderHtml(report: ComparisonReport): string {
   const findings = report.findings.length > 0
     ? report.findings.map(findingItem).join("\n")
     : '<li class="finding finding-pass"><div>No configured evolvability thresholds regressed.</div></li>';
+  const failedRuns = report.runs.filter((run) => run.failure !== null);
+  const failedAttempts = failedRuns.map(failureItem).join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -67,7 +85,7 @@ export function renderHtml(report: ComparisonReport): string {
     h2 { font-size: 21px; margin-bottom: 16px; }
     .eyebrow { color: var(--blue); font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; }
     .revision { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-align: right; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
     .card, section { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 16px 50px rgba(0,0,0,.18); }
     .card { padding: 18px; }
     .card-label { color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
@@ -77,11 +95,15 @@ export function renderHtml(report: ComparisonReport): string {
     .conclusion-inconclusive { color: var(--blue); }
     section { overflow: hidden; margin-top: 18px; padding: 22px; }
     .table-wrap { overflow-x: auto; margin: 0 -22px -22px; }
+    .table-hint { color: var(--muted); margin: -6px 0 14px; font-size: 13px; }
     table { width: 100%; min-width: 760px; border-collapse: collapse; }
     th, td { padding: 13px 16px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
     th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
     thead th { color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
     tbody th { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    thead th:first-child, tbody th:first-child { position: sticky; left: 0; z-index: 2; min-width: 160px; background: var(--panel); }
+    thead th:nth-child(2), tbody td:nth-child(2) { position: sticky; left: 160px; z-index: 2; background: var(--panel); }
+    tbody td:nth-child(2) { background: var(--panel-2); }
     .status { display: inline-flex; border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
     .status-comparable, .status-improved { color: var(--green); }
     .status-regressed { color: var(--red); }
@@ -95,7 +117,7 @@ export function renderHtml(report: ComparisonReport): string {
     .finding-meta { color: var(--muted); font: 700 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; margin-bottom: 4px; }
     footer { color: var(--muted); margin-top: 24px; max-width: 70ch; }
     @media (max-width: 720px) { main { padding-top: 32px; } header { align-items: start; flex-direction: column; } .revision { text-align: left; } .grid { grid-template-columns: 1fr; } }
-    @media print { body { background: white; color: #111; } main { width: 100%; padding: 0; } .card, section { box-shadow: none; background: white; } }
+    @media print { body { background: white; color: #111; } main { width: 100%; padding: 0; } .card, section { box-shadow: none; background: white; } .table-hint { display: none; } }
   </style>
 </head>
 <body>
@@ -107,15 +129,18 @@ export function renderHtml(report: ComparisonReport): string {
     <div class="grid" aria-label="Report summary">
       <div class="card"><div class="card-label">Scenarios</div><div class="card-value">${report.summaries.length}</div></div>
       <div class="card"><div class="card-label">Comparable</div><div class="card-value">${comparableCount}</div></div>
-      <div class="card"><div class="card-label">Warnings</div><div class="card-value">${warningCount}</div></div>
+      <div class="card"><div class="card-label">Failed attempts</div><div class="card-value">${failedRuns.length}</div></div>
+      <div class="card"><div class="card-label">Threshold warnings</div><div class="card-value">${warningCount}</div></div>
     </div>
     <section aria-labelledby="scenario-heading">
       <h2 id="scenario-heading">Scenario evidence</h2>
+      <p class="table-hint">Scroll horizontally to inspect all base/head metrics; scenario and status stay pinned.</p>
       <div class="table-wrap"><table>
-        <thead><tr><th scope="col">Scenario</th><th scope="col">Status</th><th scope="col">Base success</th><th scope="col">Head success</th><th scope="col">Base files</th><th scope="col">Head files</th><th scope="col">Base churn</th><th scope="col">Head churn</th><th scope="col">Base tokens</th><th scope="col">Head tokens</th></tr></thead>
+        <thead><tr><th scope="col">Scenario</th><th scope="col">Status</th><th scope="col">Base success</th><th scope="col">Head success</th><th scope="col">Base failures</th><th scope="col">Head failures</th><th scope="col">Base files</th><th scope="col">Head files</th><th scope="col">Base churn</th><th scope="col">Head churn</th><th scope="col">Base tokens</th><th scope="col">Head tokens</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
     </section>
+    ${failedAttempts ? `<section aria-labelledby="failure-heading"><h2 id="failure-heading">Failed attempts</h2><ul>${failedAttempts}</ul></section>` : ""}
     <section aria-labelledby="finding-heading"><h2 id="finding-heading">Findings</h2><ul>${findings}</ul></section>
     <footer>EvolveCI reports evidence for maintainer-approved future-change probes. It does not predict future requirements. Generated ${escapeHtml(report.generatedAt)}.</footer>
   </main>

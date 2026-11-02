@@ -55,6 +55,8 @@ function summarize(runs: ScenarioRun[]): MetricSummary {
   const successful = runs.filter((run) => run.success);
   return {
     successRate: runs.length === 0 ? 0 : successful.length / runs.length,
+    retryableFailures: runs.filter((run) => run.failure?.retryable === true).length,
+    terminalFailures: runs.filter((run) => run.failure !== null && !run.failure.retryable).length,
     medianDurationMs: median(successful.map((run) => run.agent.durationMs)),
     medianFilesChanged: median(successful.map((run) => run.metrics.filesChanged)),
     medianChurn: median(successful.map((run) => run.metrics.churn)),
@@ -99,6 +101,26 @@ export function evaluateRuns(
     const base = summarize(group.base);
     const head = summarize(group.head);
     let status: ScenarioSummary["status"] = "comparable";
+
+    const metricsErrorCount = [...group.base, ...group.head].filter((run) => run.metricsError !== null).length;
+    if (metricsErrorCount > 0) {
+      findings.push({
+        scenarioId,
+        severity: "info",
+        metric: "metricsUnavailable",
+        message: `Change metrics were unavailable for ${metricsErrorCount} failed attempt(s); command evidence and failure classification were preserved.`,
+      });
+    }
+
+    const retryableFailureCount = base.retryableFailures + head.retryableFailures;
+    if (retryableFailureCount > 0) {
+      findings.push({
+        scenarioId,
+        severity: "info",
+        metric: "retryableFailures",
+        message: `${retryableFailureCount} transient failure(s) were classified as retryable, recorded as failures, and not automatically retried.`,
+      });
+    }
 
     if (group.base.length !== config.execution.repetitions || group.head.length !== config.execution.repetitions) {
       status = "regressed";
@@ -239,7 +261,7 @@ export function evaluateRuns(
 
   const hasWarning = findings.some((finding) => finding.severity === "warning" || finding.severity === "critical");
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: now.toISOString(),
     repository,
     baseRevision,
@@ -255,6 +277,10 @@ function displayMetric(value: number | null): string {
   return value === null ? "—" : Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
+function displayFailures(summary: MetricSummary): string {
+  return `${summary.retryableFailures} retryable / ${summary.terminalFailures} terminal`;
+}
+
 export function renderMarkdown(report: ComparisonReport): string {
   const icon = report.conclusion === "pass" ? "✅" : report.conclusion === "warning" ? "⚠️" : "➖";
   const lines = [
@@ -264,14 +290,26 @@ export function renderMarkdown(report: ComparisonReport): string {
     "",
     "## Scenario results",
     "",
-    "| Scenario | Status | Base success | Head success | Base files | Head files | Base churn | Head churn | Base tokens | Head tokens |",
-    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| Scenario | Status | Base success | Head success | Base failures | Head failures | Base files | Head files | Base churn | Head churn | Base tokens | Head tokens |",
+    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
   ];
 
   for (const summary of report.summaries) {
     lines.push(
-      `| ${summary.scenarioId} | ${summary.status} | ${(summary.base.successRate * 100).toFixed(0)}% | ${(summary.head.successRate * 100).toFixed(0)}% | ${displayMetric(summary.base.medianFilesChanged)} | ${displayMetric(summary.head.medianFilesChanged)} | ${displayMetric(summary.base.medianChurn)} | ${displayMetric(summary.head.medianChurn)} | ${displayMetric(summary.base.medianTotalTokens)} | ${displayMetric(summary.head.medianTotalTokens)} |`,
+      `| ${summary.scenarioId} | ${summary.status} | ${(summary.base.successRate * 100).toFixed(0)}% | ${(summary.head.successRate * 100).toFixed(0)}% | ${displayFailures(summary.base)} | ${displayFailures(summary.head)} | ${displayMetric(summary.base.medianFilesChanged)} | ${displayMetric(summary.head.medianFilesChanged)} | ${displayMetric(summary.base.medianChurn)} | ${displayMetric(summary.head.medianChurn)} | ${displayMetric(summary.base.medianTotalTokens)} | ${displayMetric(summary.head.medianTotalTokens)} |`,
     );
+  }
+
+  const failedRuns = report.runs.filter((run) => run.failure !== null);
+  if (failedRuns.length > 0) {
+    lines.push("", "## Failed attempts", "");
+    for (const run of failedRuns) {
+      const failure = run.failure;
+      if (!failure) continue;
+      lines.push(
+        `- **${run.scenarioId} · ${run.side} · attempt ${run.attempt}:** ${failure.summary} Classification: ${failure.retryable ? "retryable" : "terminal"}; no automatic retry was performed.${run.metricsError ? ` ${run.metricsError}` : ""}`,
+      );
+    }
   }
 
   lines.push("", "## Findings", "");

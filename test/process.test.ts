@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runCommand } from "../src/process.js";
+import { CommandLaunchError, runCommand } from "../src/process.js";
 
 test("runCommand captures output without a shell", async () => {
   const result = await runCommand({
@@ -65,4 +65,11 @@ test("runCommand can pass prompts over stdin without inheriting secrets", async 
   });
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "future change|missing");
+});
+
+test("runCommand distinguishes launch failures from command results", async () => {
+  await assert.rejects(
+    () => runCommand({ command: ["/definitely/not/a/command"], cwd: process.cwd(), timeoutMs: 5_000 }),
+    (error: unknown) => error instanceof CommandLaunchError && error.code === "ENOENT",
+  );
 });

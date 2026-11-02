@@ -30,8 +30,9 @@ EvolveCI must:
 6. compare head with base per scenario;
 7. aggregate repeated trials using medians and reject unstable evidence;
 8. parse optional adapter telemetry only from complete structured records;
-9. write human-readable and machine-readable reports;
+9. write human-readable reports and a versioned machine-readable report (schema version 2);
 10. return a stable CI exit code.
+11. classify every failed agent or verifier attempt without automatically retrying or discarding it.
 
 ## Non-goals for the alpha
 
@@ -63,6 +64,20 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 
 `inconclusive` means no scenario produced a comparable pair and no warning-class condition was found. A both-failed scenario is inconclusive, not a pass.
 
+## Report format compatibility
+
+Report schemas are immutable and version-addressed. `schemas/report.schema.json` remains the original schema v1 contract and `schemas/report-v2.schema.json` validates reports emitted by `0.1.0-rc.2`. Consumers should select a schema from the report's required `schemaVersion` field rather than treating an unversioned file as “latest.” Both schemas ship in the npm package so stored v1 evidence remains validatable after upgrading.
+
+Schema v2 adds four required fields:
+
+- `runs[].failure`, which is `null` for a successful run and a structured failure for an unsuccessful run;
+- `summaries[].base.retryableFailures` and `summaries[].head.retryableFailures`;
+- `summaries[].base.terminalFailures` and `summaries[].head.terminalFailures`.
+- `runs[].metrics`, which is `null` rather than zero-filled when change metrics could not be collected;
+- `runs[].metricsError`, which is `null` when change metrics were collected and explains why failed-attempt metrics were unavailable otherwise.
+
+A structured failure names the `agent` or `verifier` stage, records `timeout`, `signal`, `exit-code`, or `launch-error` as the reason, and includes a deterministic summary. Timeouts are retryable; nonzero exits are terminal. Signal and launch failures are classified from their evidence: transient termination and resource-exhaustion errors are retryable, while deterministic crashes and configuration errors are terminal. A retryable classification is evidence only: the failed attempt remains in the success rate and is never rerun automatically. Command logs are persisted before change-metric collection, so a malformed file created by a failed attempt cannot erase its process evidence.
+
 ## Failure handling
 
 - Invalid configuration fails before worktrees are created.
@@ -70,6 +85,9 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 - Setup failure aborts the run because subsequent evidence would not be comparable.
 - Agent failure records evidence and skips verification.
 - Verifier failure records a failed scenario.
+- Agent and verifier timeouts plus transient signal or launch failures are classified as retryable; deterministic crashes, nonzero exits, and configuration-related launch errors are terminal.
+- Agent and verifier launch errors are recorded as structured failures instead of aborting the comparison; retryability is derived from `launchErrorCode` evidence.
+- Retryable attempts remain failed attempts in success rates and reports. The alpha never retries automatically.
 - Cleanup runs in `finally` and is idempotent.
 - Raw command output is persisted outside temporary worktrees.
 - Repeated-run logs are stored under unique attempt directories.
@@ -84,6 +102,8 @@ Configuration is repository-owned and trusted. Agent-produced code is untrusted.
 - Reject empty commands, duplicate IDs, invalid IDs, missing scenarios, and unsupported config versions.
 - Kill a command that exceeds its configured timeout.
 - Produce an inconclusive report when both revisions fail a probe.
+- Preserve failed attempts while exposing their stage, cause, retryability, and per-side counts.
+- Validate generated reports and success/failure invariants against the published Draft 2020-12 schema.
 - Produce a warning when head succeeds but requires more files than configured.
 - Use medians across repeated pairs and reject high-variance evidence.
 - Keep undeclared parent-process secrets out of setup, agent, and verifier environments.
