@@ -8,6 +8,7 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 - Run `npm run release:check` from a fresh checkout.
 - Confirm all GitHub checks are green on the exact release SHA.
 - Confirm `package.json`, lockfile, CLI version, changelog, and proposed tag agree.
+- Run `npm run launch:production-check`; do not proceed if the checked-in video is still the provisional local-voice preview.
 
 ## 2. Publish the package and release
 

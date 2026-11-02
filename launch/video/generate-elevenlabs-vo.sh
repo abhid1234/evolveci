@@ -43,6 +43,8 @@ NODE
 response_file="$(mktemp "$SCRIPT_DIR/.vo-response.XXXXXX")"
 trap 'rm -f "$response_file"' EXIT
 status="$(curl -sS -o "$response_file" -w '%{http_code}' -X POST \
+  --connect-timeout 15 \
+  --max-time 120 \
   "https://api.elevenlabs.io/v1/text-to-speech/$VOICE_ID?output_format=mp3_44100_128" \
   -H "xi-api-key: $api_key" \
   -H "Content-Type: application/json" \
@@ -66,8 +68,10 @@ trap - EXIT
 duration="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$OUTPUT_FILE")"
 bytes="$(wc -c < "$OUTPUT_FILE" | tr -d ' ')"
 
-VOICE_ID="$VOICE_ID" MODEL_ID="$MODEL_ID" DURATION="$duration" BYTES="$bytes" METADATA_FILE="$METADATA_FILE" node <<'NODE'
+VOICE_ID="$VOICE_ID" MODEL_ID="$MODEL_ID" DURATION="$duration" BYTES="$bytes" METADATA_FILE="$METADATA_FILE" NARRATION_FILE="$SCRIPT_DIR/narration.txt" OUTPUT_FILE="$OUTPUT_FILE" node <<'NODE'
 const fs = require("node:fs");
+const crypto = require("node:crypto");
+const sha256 = (file) => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 const metadata = {
   provider: "ElevenLabs",
   voiceName: "Will",
@@ -76,6 +80,8 @@ const metadata = {
   settings: { stability: 0.35, similarityBoost: 0.8, style: 0.35, useSpeakerBoost: true },
   durationSeconds: Number(process.env.DURATION),
   bytes: Number(process.env.BYTES),
+  narrationSha256: sha256(process.env.NARRATION_FILE),
+  audioSha256: sha256(process.env.OUTPUT_FILE),
 };
 fs.writeFileSync(process.env.METADATA_FILE, `${JSON.stringify(metadata, null, 2)}\n`);
 NODE

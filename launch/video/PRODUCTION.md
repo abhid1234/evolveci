@@ -18,6 +18,8 @@ The render measures the generated MP3 and calculates a pitch-preserving tempo ad
 
 For layout and timing work while ElevenLabs is unavailable, [`render-local-preview.sh`](render-local-preview.sh) creates an explicitly provisional macOS system-voice cut through the same capture and mixing path. That preview is never the production master; re-run `render.sh` with Will before launch.
 
+After the Will render, run `npm run launch:production-check`. It fails unless the voice metadata identifies the approved Will configuration, the narration and MP3 hashes agree, and the final master is exactly 66 seconds with the expected H.264/AAC media shape. The ordinary `npm run check` intentionally accepts a provisional preview so launch-material work can continue before the credential handoff.
+
 ## QA gates
 
 - First frame is nonblank and immediately identifies the passing pull request.
