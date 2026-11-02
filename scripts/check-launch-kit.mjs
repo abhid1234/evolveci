@@ -24,7 +24,7 @@ for (const file of required) {
 }
 
 if (failures.length === 0) {
-  const posts = read("launch/launch-posts.md").toString("utf8");
+  const posts = read("launch/launch-posts.md").toString("utf8").replace(/\r\n/g, "\n");
   const x = posts.split("## X")[1]?.split("## LinkedIn")[0]?.trim() ?? "";
   if ([...x].length > 280) failures.push(`X draft is ${[...x].length} characters`);
 
