@@ -38,6 +38,11 @@ if (failures.length === 0) {
   if (embeddedImages < 3) failures.push(`Substack HTML has only ${embeddedImages} embedded figures`);
   if (substack.includes("**")) failures.push("Substack HTML contains unrendered Markdown emphasis");
 
+  const controlRoom = read("launch/launch-evolveci.html").toString("utf8");
+  for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button"]) {
+    if (!controlRoom.includes(expected)) failures.push(`launch control room is missing ${expected}`);
+  }
+
   const video = read("launch/video/evolveci-launch.mp4");
   if (video.length < 500_000 || video.subarray(4, 8).toString("ascii") !== "ftyp") {
     failures.push("launch video is missing or is not a plausible MP4");
