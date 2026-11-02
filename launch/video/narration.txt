@@ -1,0 +1,11 @@
+Your pull request passes. But what did it do to the next change?
+
+EvolveCI is an experiment in counterfactual CI. A maintainer chooses one plausible follow-up task and a deterministic verifier. EvolveCI runs the same task against the base and head revisions, in separate Git worktrees, then compares the patches.
+
+In the bundled demo, both revisions preserve today’s permissions behavior. But adding the next role changes one file on the registry-based base, and four files on the coupled head. The check is still green. The next change is not equally cheap.
+
+There is no opaque maintainability score. EvolveCI preserves changed paths, churn, verifier results, duration, telemetry, failures, and raw logs. No comparable success means inconclusive, not a confident story.
+
+This is an early, open-source alpha with a built-in Codex adapter. It does not predict your roadmap. It turns one architectural hunch into an experiment you can inspect.
+
+Your pull request passes. Test the change after it.

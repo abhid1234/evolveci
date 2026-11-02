@@ -12,7 +12,7 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`launch-evolveci.html`](launch-evolveci.html) | Copy-friendly launch control room | Ready |
 | [`FACT-CHECK.md`](FACT-CHECK.md) | Claim ledger and public-surface readiness | Ready |
 | [`figures/`](figures/) | Five light-theme launch figures and 1100×220 banner | Rendered and visually verified |
-| `video/` | Script, deterministic animation, capture, and mux files | Production pass pending |
+| [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 60-second MP4 | Rendered and verified |
 
 ## Launch sequence
 

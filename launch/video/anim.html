@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EvolveCI launch video</title>
+  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f7f4ed}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="stage" width="1280" height="720"></canvas>
+<script>
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const C = { paper:"#f7f4ed", card:"#fffdf8", ink:"#17201d", muted:"#68746f", green:"#235f52", mint:"#cfe3da", orange:"#d46638", line:"#d8d7cf" };
+const scenes = [0, 5, 12, 20, 29, 38, 46, 53, 60];
+
+function ease(x){ return x < .5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
+function clamp(x,a=0,b=1){ return Math.max(a,Math.min(b,x)); }
+function sceneProgress(t,i){ return ease(clamp((t-scenes[i])/(scenes[i+1]-scenes[i]))); }
+function rounded(x,y,w,h,r,fill,stroke){ ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();} }
+function text(s,x,y,size=42,color=C.ink,weight=700,align="left",family="Inter, system-ui, sans-serif"){
+  ctx.font=`${weight} ${size}px ${family}`;ctx.fillStyle=color;ctx.textAlign=align;ctx.textBaseline="alphabetic";ctx.fillText(s,x,y);
+}
+function lines(items,x,y,size,gap,color=C.ink,weight=700,align="left",family){ items.forEach((s,i)=>text(s,x,y+i*gap,size,color,weight,align,family)); }
+function brand(){ text("EvolveCI",1160,66,26,C.green,850,"right"); }
+function eyebrow(s){ text(s.toUpperCase(),74,72,17,C.green,850); }
+function footer(s){ text(s,74,676,16,C.muted,600); text("github.com/abhid1234/evolveci",1206,676,16,C.muted,600,"right"); }
+function base(){ ctx.fillStyle=C.paper;ctx.fillRect(0,0,1280,720); brand(); }
+function fade(t,start,end){ return clamp((t-start)/(end-start)); }
+
+function draw(t){
+  base();
+  let i=scenes.findIndex((v,n)=>t>=v && t<scenes[n+1]); if(i<0)i=7;
+  const p=sceneProgress(t,i); ctx.globalAlpha=i===0?1:fade(p,0,.12);
+  if(i===0){
+    eyebrow("The check is green");
+    lines(["Your pull request", "passes."],74,250,92,95,C.ink,500,"left","Georgia, serif");
+    rounded(74,470,330,86,16,C.green);text("BUILD PASSED",239,525,25,"white",850,"center");
+    footer("That is necessary. It is not the whole story.");
+  } else if(i===1){
+    eyebrow("The missing question");
+    lines(["What did it do to", "the next change?"],74,245,82,92,C.ink,500,"left","Georgia, serif");
+    const w=500*p;ctx.fillStyle=C.orange;ctx.fillRect(74,466,w,6);
+    text("Green today can still mean costlier tomorrow.",74,535,27,C.muted,600);
+    footer("Counterfactual CI");
+  } else if(i===2){
+    eyebrow("A paired experiment");
+    text("Same task. Two revisions.",74,165,59,C.ink,500,"left","Georgia, serif");
+    const cards=[{x:74,label:"BASE",n:"A"},{x:472,label:"FOLLOW-UP TASK",n:"="},{x:870,label:"HEAD",n:"B"}];
+    cards.forEach((c,k)=>{rounded(c.x,245,330,235,20,k===1?C.green:C.card,k===1?null:C.line);text(c.label,c.x+28,292,15,k===1?C.mint:C.muted,850);text(c.n,c.x+165,408,70,k===1?"white":C.green,500,"center","Georgia, serif");});
+    text("→",442,372,44,C.orange,850,"center");text("→",840,372,44,C.orange,850,"center");
+    footer("Maintainer-chosen prompt and deterministic verifier.");
+  } else if(i===3){
+    eyebrow("The deterministic demo");
+    text("Same behavior today.",74,155,53,C.ink,500,"left","Georgia, serif");
+    text("Different cost tomorrow.",74,215,53,C.ink,500,"left","Georgia, serif");
+    rounded(74,290,530,260,20,C.card,C.line);rounded(676,290,530,260,20,C.card,C.line);
+    text("BASE · REGISTRY",108,338,15,C.muted,850);text("HEAD · COUPLED",710,338,15,C.muted,850);
+    text("1",108,450,98,C.green,500,"left","Georgia, serif");text("4",710,450,98,C.orange,500,"left","Georgia, serif");
+    text("changed file",210,445,29,C.ink,750);text("changed files",812,445,29,C.ink,750);
+    ctx.fillStyle=C.green;ctx.fillRect(108,490,390*p,18);ctx.fillStyle=C.orange;ctx.fillRect(710,490,390*p,18);
+    footer("Three purpose-built role-addition scenarios. One result each time.");
+  } else if(i===4){
+    eyebrow("Evidence before verdict");
+    text("No opaque AI score.",74,164,63,C.ink,500,"left","Georgia, serif");
+    const cells=[["PATCH","changed paths · churn"],["VERIFY","tests · success"],["RUN","duration · tokens"],["FAIL","stage · reason · logs"]];
+    cells.forEach((c,k)=>{const x=74+(k%2)*570,y=230+Math.floor(k/2)*155;rounded(x,y,536,125,16,C.card,C.line);text(c[0],x+25,y+40,14,C.green,850);text(c[1],x+25,y+88,27,C.ink,700);});
+    footer("Versioned JSON, Markdown, offline HTML, and raw logs.");
+  } else if(i===5){
+    eyebrow("Failures stay visible");
+    text("Inconclusive is a result.",74,167,65,C.ink,500,"left","Georgia, serif");
+    const labels=["timeout","verifier crash","incomplete telemetry"];
+    labels.forEach((s,k)=>{rounded(74,238+k*92,700,65,12,C.card,C.line);text(s,102,280+k*92,24,C.ink,700);rounded(825,238+k*92,282,65,12,k===2?C.orange:C.green);text(k===2?"NO TOKEN CLAIM":"PRESERVED",966,280+k*92,17,"white",850,"center");});
+    footer("Nothing silently reruns. Nothing disappears from the evidence.");
+  } else if(i===6){
+    eyebrow("A deliberately narrow claim");
+    text("It can show",74,173,25,C.green,850);text("a chosen follow-up changed",74,244,51,C.ink,500,"left","Georgia, serif");text("between two revisions.",74,303,51,C.ink,500,"left","Georgia, serif");
+    ctx.fillStyle=C.line;ctx.fillRect(74,354,1132,2);
+    text("It cannot show",74,411,25,C.orange,850);text("that it predicted your roadmap",74,478,47,C.ink,500,"left","Georgia, serif");text("or measured maintainability in general.",74,534,47,C.ink,500,"left","Georgia, serif");
+    footer("Worktrees isolate checkouts. They are not a security sandbox.");
+  } else {
+    eyebrow("Open-source alpha");
+    lines(["Your PR passes.","Test the change after it."],74,214,69,82,C.ink,500,"left","Georgia, serif");
+    rounded(74,445,712,78,14,C.green);text("github.com/abhid1234/evolveci",430,495,24,"white",750,"center");
+    text("1 → 4",1114,486,64,C.orange,500,"center","Georgia, serif");
+    text("changed files in the demo",1114,526,16,C.muted,700,"center");
+    footer("Built-in Codex adapter today. Vendor-neutral contract for what comes next.");
+  }
+  ctx.globalAlpha=1;
+}
+
+window.render = draw;
+draw(0);
+</script>
+</body>
+</html>
