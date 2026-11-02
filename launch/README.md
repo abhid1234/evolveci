@@ -18,7 +18,7 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | Figure alt text, video description, and caption checks | Ready |
 | [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md) | Exact morning publish order and independent readbacks | Ready |
 | [`figures/`](figures/) | Five light-theme launch figures and 1100×220 banner | Rendered and visually verified |
-| [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 60-second MP4 | Rendered and verified |
+| [`video/`](video/) | Script, deterministic animation, captions, narration, render pipeline, and 66-second MP4 | Rendered and verified |
 
 ## Launch sequence
 

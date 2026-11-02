@@ -42,7 +42,7 @@ if (failures.length === 0) {
   if (substack.includes("**")) failures.push("Substack HTML contains unrendered Markdown emphasis");
 
   const controlRoom = read("launch/launch-evolveci.html").toString("utf8");
-  for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button"]) {
+  for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s"]) {
     if (!controlRoom.includes(expected)) failures.push(`launch control room is missing ${expected}`);
   }
 
@@ -57,7 +57,7 @@ if (failures.length === 0) {
   }
 
   const captions = read("launch/video/captions.srt").toString("utf8");
-  if (!captions.includes("00:01:00,000")) failures.push("caption track does not reach the 60-second ending");
+  if (!captions.includes("00:01:06,000")) failures.push("caption track does not reach the 66-second ending");
 }
 
 if (failures.length > 0) {

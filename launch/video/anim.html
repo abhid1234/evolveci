@@ -11,7 +11,7 @@
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d");
 const C = { paper:"#f7f4ed", card:"#fffdf8", ink:"#17201d", muted:"#68746f", green:"#235f52", mint:"#cfe3da", orange:"#d46638", line:"#d8d7cf" };
-const scenes = [0, 5, 12, 20, 29, 38, 46, 53, 60];
+const scenes = [0, 5, 12, 20, 29, 38, 46, 53, 66];
 
 function ease(x){ return x < .5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
 function clamp(x,a=0,b=1){ return Math.max(a,Math.min(b,x)); }
@@ -78,11 +78,13 @@ function draw(t){
     text("It cannot show",74,411,25,C.orange,850);text("that it predicted your roadmap",74,478,47,C.ink,500,"left","Georgia, serif");text("or measured maintainability in general.",74,534,47,C.ink,500,"left","Georgia, serif");
     footer("Worktrees isolate checkouts. They are not a security sandbox.");
   } else {
-    eyebrow("Open-source alpha");
-    lines(["Your PR passes.","Test the change after it."],74,214,69,82,C.ink,500,"left","Georgia, serif");
-    rounded(74,445,712,78,14,C.green);text("github.com/abhid1234/evolveci",430,495,24,"white",750,"center");
-    text("1 → 4",1114,486,64,C.orange,500,"center","Georgia, serif");
-    text("changed files in the demo",1114,526,16,C.muted,700,"center");
+    eyebrow("A weekend experiment");
+    lines(["Your PR passes.","Test the change after it."],74,176,62,70,C.ink,500,"left","Georgia, serif");
+    text("Rough and early. Run the fixture, inspect the evidence, and poke holes in it.",74,348,21,C.muted,650);
+    text("1 → 4",160,468,72,C.orange,500,"center","Georgia, serif");
+    text("changed files in the demo",160,507,15,C.muted,700,"center");
+    const destinations=[["play","npm run demo"],["code","github.com/abhid1234/evolveci"],["npm","@avee1234/evolveci · pending"],["read","launch essay · pending"]];
+    destinations.forEach((d,k)=>{const y=405+k*51;text(d[0].toUpperCase(),660,y,13,C.orange,850,"right");text(d[1],724,y,20,C.ink,700);});
     footer("Built-in Codex adapter today. Vendor-neutral contract for what comes next.");
   }
   ctx.globalAlpha=1;
