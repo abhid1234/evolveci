@@ -8,7 +8,13 @@ const DEFAULT_THRESHOLDS: Required<ThresholdConfig> = {
   maxChurnIncreasePercent: 50,
   maxAddedTestFiles: 0,
   maxAddedDependencies: 0,
+  maxChangedDependencies: 0,
 };
+
+const DEFAULT_EXECUTION = {
+  repetitions: 1,
+  maxCoefficientOfVariationPercent: 30,
+} as const;
 
 function asObject(value: unknown, label: string): Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
@@ -64,6 +70,18 @@ export function parseConfig(input: string): EvolveConfig {
 
   const agent = asObject(raw.agent, "config.agent");
   const timeoutMs = optionalPositiveInteger(agent.timeoutMs, "config.agent.timeoutMs");
+  const inheritEnvironment = agent.inheritEnvironment ?? false;
+  if (typeof inheritEnvironment !== "boolean") {
+    throw new Error("config.agent.inheritEnvironment must be a boolean");
+  }
+  const promptTransport = agent.promptTransport ?? "environment";
+  if (promptTransport !== "environment" && promptTransport !== "stdin") {
+    throw new Error('config.agent.promptTransport must be "environment" or "stdin"');
+  }
+  const passEnvironment = agent.passEnvironment ?? [];
+  if (!Array.isArray(passEnvironment) || passEnvironment.some((name) => typeof name !== "string" || !/^[A-Z_][A-Z0-9_]*$/.test(name))) {
+    throw new Error("config.agent.passEnvironment must be an array of environment variable names");
+  }
   if (!Array.isArray(raw.scenarios) || raw.scenarios.length === 0) {
     throw new Error("config.scenarios must contain at least one scenario");
   }
@@ -76,11 +94,25 @@ export function parseConfig(input: string): EvolveConfig {
   }
 
   const thresholds = raw.thresholds === undefined ? {} : asObject(raw.thresholds, "config.thresholds");
+  const execution = raw.execution === undefined ? {} : asObject(raw.execution, "config.execution");
+  const repetitions = optionalPositiveInteger(execution.repetitions, "config.execution.repetitions") ?? DEFAULT_EXECUTION.repetitions;
+  if (repetitions > 20) throw new Error("config.execution.repetitions must not exceed 20");
   const parsed: EvolveConfig = {
     version: 1,
     agent: {
       command: asCommand(agent.command, "config.agent.command"),
+      inheritEnvironment,
+      passEnvironment: [...passEnvironment] as string[],
+      promptTransport,
       ...(timeoutMs === undefined ? {} : { timeoutMs }),
+    },
+    execution: {
+      repetitions,
+      maxCoefficientOfVariationPercent: threshold(
+        execution.maxCoefficientOfVariationPercent,
+        "config.execution.maxCoefficientOfVariationPercent",
+        DEFAULT_EXECUTION.maxCoefficientOfVariationPercent,
+      ),
     },
     thresholds: {
       maxAddedFiles: threshold(thresholds.maxAddedFiles, "config.thresholds.maxAddedFiles", DEFAULT_THRESHOLDS.maxAddedFiles),
@@ -103,6 +135,11 @@ export function parseConfig(input: string): EvolveConfig {
         thresholds.maxAddedDependencies,
         "config.thresholds.maxAddedDependencies",
         DEFAULT_THRESHOLDS.maxAddedDependencies,
+      ),
+      maxChangedDependencies: threshold(
+        thresholds.maxChangedDependencies,
+        "config.thresholds.maxChangedDependencies",
+        DEFAULT_THRESHOLDS.maxChangedDependencies,
       ),
     },
     scenarios,

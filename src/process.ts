@@ -3,10 +3,13 @@ import type { CommandResult, CommandSpec } from "./types.js";
 
 const MAX_CAPTURE_BYTES = 2 * 1024 * 1024;
 
-function appendBounded(current: string, chunk: Buffer): string {
-  if (Buffer.byteLength(current) >= MAX_CAPTURE_BYTES) return current;
+function appendBounded(current: string, chunk: Buffer): { value: string; truncated: boolean } {
+  if (Buffer.byteLength(current) >= MAX_CAPTURE_BYTES) return { value: current, truncated: true };
   const remaining = MAX_CAPTURE_BYTES - Buffer.byteLength(current);
-  return current + chunk.subarray(0, remaining).toString("utf8");
+  return {
+    value: current + chunk.subarray(0, remaining).toString("utf8"),
+    truncated: chunk.length > remaining,
+  };
 }
 
 export interface RunCommandOptions {
@@ -14,6 +17,8 @@ export interface RunCommandOptions {
   cwd: string;
   env?: NodeJS.ProcessEnv;
   timeoutMs?: number;
+  inheritEnv?: boolean;
+  stdin?: string;
 }
 
 export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
@@ -23,14 +28,16 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(executable, args, {
       cwd: options.cwd,
-      env: { ...process.env, ...options.env },
+      env: { ...(options.inheritEnv === false ? {} : process.env), ...options.env },
       shell: false,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: [options.stdin === undefined ? "ignore" : "pipe", "pipe", "pipe"],
     });
 
     let stdout = "";
     let stderr = "";
     let timedOut = false;
+    let stdoutTruncated = false;
+    let stderrTruncated = false;
     let forceKill: NodeJS.Timeout | undefined;
     const timer = options.timeoutMs
       ? setTimeout(() => {
@@ -40,12 +47,17 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
         }, options.timeoutMs)
       : undefined;
 
-    child.stdout.on("data", (chunk: Buffer) => {
-      stdout = appendBounded(stdout, chunk);
+    child.stdout?.on("data", (chunk: Buffer) => {
+      const appended = appendBounded(stdout, chunk);
+      stdout = appended.value;
+      stdoutTruncated ||= appended.truncated;
     });
-    child.stderr.on("data", (chunk: Buffer) => {
-      stderr = appendBounded(stderr, chunk);
+    child.stderr?.on("data", (chunk: Buffer) => {
+      const appended = appendBounded(stderr, chunk);
+      stderr = appended.value;
+      stderrTruncated ||= appended.truncated;
     });
+    if (options.stdin !== undefined) child.stdin?.end(options.stdin);
     child.on("error", reject);
     child.on("close", (exitCode, signal) => {
       if (timer) clearTimeout(timer);
@@ -58,6 +70,8 @@ export function runCommand(options: RunCommandOptions): Promise<CommandResult> {
         durationMs: Math.round(performance.now() - startedAt),
         stdout,
         stderr,
+        stdoutTruncated,
+        stderrTruncated,
       });
     });
   });

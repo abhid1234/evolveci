@@ -18,6 +18,7 @@ Given:
 - one or more repository-owned scenarios;
 - an agent command and deterministic verifier;
 - explicit warning thresholds;
+- a repeat count and maximum acceptable run variability;
 
 EvolveCI must:
 
@@ -27,8 +28,9 @@ EvolveCI must:
 4. run the scenario verifier only after the agent succeeds;
 5. collect patch and execution evidence before removing the worktree;
 6. compare head with base per scenario;
-7. write human-readable and machine-readable reports;
-8. return a stable CI exit code.
+7. aggregate repeated trials using medians and reject unstable evidence;
+8. write human-readable and machine-readable reports;
+9. return a stable CI exit code.
 
 ## Non-goals for the alpha
 
@@ -36,7 +38,7 @@ EvolveCI must:
 - grading code using a model's opinion;
 - providing a security sandbox;
 - supporting arbitrary shell scripts in configuration;
-- running repetitions or calculating confidence intervals;
+- calculating full statistical confidence intervals;
 - publishing GitHub checks or PR comments;
 - operating a hosted service.
 
@@ -50,7 +52,7 @@ Paired runs must use the same:
 - verifier executable and arguments;
 - process environment except for revision, side, and worktree metadata.
 
-The alpha runs pairs sequentially to avoid machine contention contaminating duration. Future versions may parallelize pairs only when resource isolation is available.
+The alpha runs pairs sequentially to avoid machine contention contaminating duration. Each repeat runs base and then head. Reports use medians, expose success rates, and mark a scenario inconclusive when duration coefficient of variation exceeds the configured limit. Future versions may randomize order or parallelize pairs only when resource isolation is available.
 
 ## Result semantics
 
@@ -68,10 +70,11 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 - Verifier failure records a failed scenario.
 - Cleanup runs in `finally` and is idempotent.
 - Raw command output is persisted outside temporary worktrees.
+- Repeated-run logs are stored under unique attempt directories.
 
 ## Trust model
 
-Configuration is repository-owned and trusted. Agent-produced code is untrusted. The alpha prevents shell interpolation but does not isolate the process from the host network or filesystem permissions. It is appropriate for a local proof on trusted repositories, not multi-tenant execution.
+Configuration is repository-owned and trusted. Agent-produced code is untrusted. The alpha prevents shell interpolation and defaults to a minimal inherited environment so unrelated credentials are not exposed. It does not isolate the process from the host network or filesystem permissions. It is appropriate for a local proof on trusted repositories, not multi-tenant execution.
 
 ## Acceptance tests
 
@@ -79,5 +82,7 @@ Configuration is repository-owned and trusted. Agent-produced code is untrusted.
 - Kill a command that exceeds its configured timeout.
 - Produce an inconclusive report when both revisions fail a probe.
 - Produce a warning when head succeeds but requires more files than configured.
+- Use medians across repeated pairs and reject high-variance evidence.
+- Keep undeclared parent-process secrets out of the agent environment.
 - Run a real temporary Git repository through base and head worktrees and write both report formats.
 - Leave the source checkout unchanged.

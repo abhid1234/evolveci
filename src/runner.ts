@@ -14,11 +14,13 @@ function skippedVerifier(agent: CommandResult): CommandResult {
     durationMs: 0,
     stdout: "",
     stderr: `Verifier skipped because agent exited with ${agent.exitCode ?? agent.signal ?? "unknown status"}.`,
+    stdoutTruncated: false,
+    stderrTruncated: false,
   };
 }
 
 async function writeCommandLog(outputDir: string, run: ScenarioRun): Promise<void> {
-  const runDir = path.join(outputDir, "logs", run.scenarioId, run.side);
+  const runDir = path.join(outputDir, "logs", run.scenarioId, run.side, `attempt-${run.attempt}`);
   await mkdir(runDir, { recursive: true });
   await Promise.all([
     writeFile(path.join(runDir, "agent.stdout.log"), run.agent.stdout),
@@ -33,6 +35,7 @@ async function runScenario(
   revision: string,
   side: RunSide,
   scenario: ScenarioConfig,
+  attempt: number,
   config: EvolveConfig,
   outputDir: string,
 ): Promise<ScenarioRun> {
@@ -45,26 +48,41 @@ async function runScenario(
       }
     }
     const beforeDependencies = await readDependencies(worktree.path);
+    const baseEnvironment: NodeJS.ProcessEnv = {};
+    for (const name of ["PATH", "HOME", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "SHELL", ...config.agent.passEnvironment]) {
+      if (process.env[name] !== undefined) baseEnvironment[name] = process.env[name];
+    }
+    const runEnvironment: NodeJS.ProcessEnv = {
+      ...baseEnvironment,
+      EVOLVECI_SCENARIO_ID: scenario.id,
+      EVOLVECI_REPOSITORY: repository,
+      EVOLVECI_WORKTREE: worktree.path,
+      EVOLVECI_REVISION: revision,
+      EVOLVECI_SIDE: side,
+      EVOLVECI_ATTEMPT: String(attempt),
+      ...(config.agent.promptTransport === "environment" ? { EVOLVECI_PROMPT: scenario.prompt } : {}),
+    };
     const agent = await runCommand({
       command: config.agent.command,
       cwd: worktree.path,
       timeoutMs: scenario.timeoutMs ?? config.agent.timeoutMs ?? 600_000,
-      env: {
-        EVOLVECI_SCENARIO_ID: scenario.id,
-        EVOLVECI_PROMPT: scenario.prompt,
-        EVOLVECI_REPOSITORY: repository,
-        EVOLVECI_WORKTREE: worktree.path,
-        EVOLVECI_REVISION: revision,
-        EVOLVECI_SIDE: side,
-      },
+      env: runEnvironment,
+      inheritEnv: config.agent.inheritEnvironment,
+      ...(config.agent.promptTransport === "stdin" ? { stdin: scenario.prompt } : {}),
     });
     const verifier =
       agent.exitCode === 0
-        ? await runCommand({ command: scenario.verify, cwd: worktree.path, timeoutMs: scenario.timeoutMs ?? 300_000 })
+        ? await runCommand({
+            command: scenario.verify,
+            cwd: worktree.path,
+            timeoutMs: scenario.timeoutMs ?? 300_000,
+            env: runEnvironment,
+          })
         : skippedVerifier(agent);
     const run: ScenarioRun = {
       scenarioId: scenario.id,
       side,
+      attempt,
       revision,
       success: agent.exitCode === 0 && verifier.exitCode === 0 && !agent.timedOut && !verifier.timedOut,
       agent,
@@ -93,8 +111,10 @@ export async function runComparison(options: ComparisonOptions): Promise<Compari
 
   const runs: ScenarioRun[] = [];
   for (const scenario of options.config.scenarios) {
-    runs.push(await runScenario(options.repository, baseRevision, "base", scenario, options.config, options.outputDir));
-    runs.push(await runScenario(options.repository, headRevision, "head", scenario, options.config, options.outputDir));
+    for (let attempt = 1; attempt <= options.config.execution.repetitions; attempt += 1) {
+      runs.push(await runScenario(options.repository, baseRevision, "base", scenario, attempt, options.config, options.outputDir));
+      runs.push(await runScenario(options.repository, headRevision, "head", scenario, attempt, options.config, options.outputDir));
+    }
   }
 
   const report = evaluateRuns(options.repository, baseRevision, headRevision, options.config, runs);

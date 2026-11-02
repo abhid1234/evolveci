@@ -12,6 +12,14 @@ async function git(repo: string, args: string[]): Promise<string> {
   return result.stdout.trim();
 }
 
+async function gitRaw(repo: string, args: string[]): Promise<string> {
+  const result = await runCommand({ command: ["git", ...args] as CommandSpec, cwd: repo, timeoutMs: 60_000 });
+  if (result.exitCode !== 0) {
+    throw new Error(`git ${args.join(" ")} failed: ${result.stderr.trim() || result.stdout.trim()}`);
+  }
+  return result.stdout;
+}
+
 export async function repositoryRoot(cwd: string): Promise<string> {
   return git(cwd, ["rev-parse", "--show-toplevel"]);
 }
@@ -71,7 +79,7 @@ export async function collectChangeMetrics(
 ): Promise<ChangeMetrics> {
   const changedPathsOutput = await git(worktree, ["diff", "--name-only", "HEAD", "--"]);
   const trackedPaths = changedPathsOutput === "" ? [] : changedPathsOutput.split("\n").filter(Boolean);
-  const untrackedOutput = await git(worktree, ["ls-files", "--others", "--exclude-standard", "-z"]);
+  const untrackedOutput = await gitRaw(worktree, ["ls-files", "--others", "--exclude-standard", "-z"]);
   const untrackedPaths = untrackedOutput === "" ? [] : untrackedOutput.split("\0").filter(Boolean);
   const changedPaths = [...new Set([...trackedPaths, ...untrackedPaths])].sort();
   const numstat = await git(worktree, ["diff", "--numstat", "HEAD", "--"]);
@@ -93,6 +101,9 @@ export async function collectChangeMetrics(
   const dependenciesAdded = Object.keys(afterDependencies)
     .filter((name) => !(name in beforeDependencies))
     .sort();
+  const dependenciesChanged = Object.keys(afterDependencies)
+    .filter((name) => name in beforeDependencies && afterDependencies[name] !== beforeDependencies[name])
+    .sort();
   return {
     filesChanged: changedPaths.length,
     linesAdded,
@@ -100,6 +111,7 @@ export async function collectChangeMetrics(
     churn: linesAdded + linesDeleted,
     testFilesChanged: changedPaths.filter((file) => /(^|\/)(test|tests|__tests__)(\/|$)|\.(test|spec)\.[^.]+$/.test(file)).length,
     dependenciesAdded,
+    dependenciesChanged,
     changedPaths,
   };
 }

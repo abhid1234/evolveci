@@ -59,6 +59,15 @@ agent:
   # Commands are argv arrays. EvolveCI never interpolates them through a shell.
   command: ["node", "./tools/evolveci-codex-adapter.mjs"]
   timeoutMs: 600000
+  # Default-deny inherited environment. Allow only credentials the adapter needs.
+  inheritEnvironment: false
+  passEnvironment: []
+  # Use stdin for agents that support it so large prompts never hit env limits.
+  promptTransport: stdin
+
+execution:
+  repetitions: 3
+  maxCoefficientOfVariationPercent: 30
 
 thresholds:
   maxAddedFiles: 2
@@ -66,6 +75,7 @@ thresholds:
   maxChurnIncreasePercent: 50
   maxAddedTestFiles: 0
   maxAddedDependencies: 0
+  maxChangedDependencies: 0
 
 scenarios:
   - id: add-enterprise-auditor
@@ -75,18 +85,19 @@ scenarios:
     timeoutMs: 600000
 ```
 
-The agent receives these environment variables:
+The agent receives a minimal runtime environment plus these variables:
 
 | Variable | Meaning |
 |---|---|
-| `EVOLVECI_PROMPT` | Maintainer-owned future-change prompt |
+| `EVOLVECI_PROMPT` | Prompt when `promptTransport` is `environment` |
 | `EVOLVECI_SCENARIO_ID` | Stable scenario identifier |
 | `EVOLVECI_SIDE` | `base` or `head` |
 | `EVOLVECI_REVISION` | Exact commit SHA |
 | `EVOLVECI_REPOSITORY` | Original repository root |
 | `EVOLVECI_WORKTREE` | Isolated worktree path |
+| `EVOLVECI_ATTEMPT` | One-based repeat number |
 
-The alpha does not expand `$EVOLVECI_PROMPT` inside command arguments. Agent adapters should read it from the environment. This avoids shell injection and keeps prompts containing quotes or newlines intact.
+The CLI does not expand `$EVOLVECI_PROMPT` inside command arguments. Agent adapters read the prompt from stdin or the environment. This avoids shell injection and keeps prompts containing quotes or newlines intact. Agent processes inherit only a small OS allowlist by default; add credential names to `passEnvironment` only when required.
 
 ## Run
 
@@ -129,8 +140,8 @@ Each run produces:
 ├── report.md
 └── logs/
     └── <scenario>/
-        ├── base/
-        └── head/
+        ├── base/attempt-1/
+        └── head/attempt-1/
 ```
 
 The report is deliberately decomposable. Reviewers can see which scenario regressed, the exact metric, both values, verifier output, and agent logs.
@@ -141,8 +152,11 @@ The report is deliberately decomposable. Reviewers can see which scenario regres
 - Scenarios run in temporary detached worktrees, not the developer's checkout.
 - Worktrees are removed after every scenario, including failed runs.
 - Output capture is bounded to avoid unbounded memory use.
+- Truncated stdout and stderr are explicitly marked in JSON evidence.
 - A timed-out command receives `SIGTERM`, followed by `SIGKILL` after one second.
 - Configuration requires argv arrays instead of command strings.
+- Agent subprocesses do not inherit arbitrary secrets unless explicitly allowed.
+- Repeated runs use medians and become inconclusive when duration variance exceeds the configured limit.
 
 Worktree isolation is not a security sandbox. Before running untrusted agents or repositories, the next milestone is container or microVM isolation with explicit network, CPU, memory, and filesystem policies.
 

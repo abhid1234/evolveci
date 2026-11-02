@@ -19,7 +19,7 @@
 - [x] Add a protected auditor-role follow-up verifier.
 - [ ] Expand the fixture to multi-tenancy, billing, and audit logging.
 - [ ] Add two more protected follow-up verifiers.
-- [ ] Run each scenario three times with a deterministic fixture adapter.
+- [x] Run each scenario three times with a deterministic fixture adapter.
 - [ ] Produce a checked-in anonymized sample report and screenshot-ready HTML view.
 
 ## Milestone 3 — credible agent execution
@@ -27,7 +27,7 @@
 - [ ] Define an adapter protocol with prompt, token, turn, and cost telemetry.
 - [ ] Add a Codex CLI adapter.
 - [ ] Add a Claude Code adapter.
-- [ ] Add run repetition, medians, dispersion, and confidence-based inconclusive results.
+- [x] Add run repetition, medians, dispersion, and confidence-based inconclusive results.
 - [ ] Add retry classification without hiding failures.
 
 ## Milestone 4 — isolation and CI

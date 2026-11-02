@@ -54,13 +54,21 @@ try {
   await rm(outputDir, { recursive: true, force: true });
   const config = {
     version: 1,
-    agent: { command: [process.execPath, fixtureAgent], timeoutMs: 30_000 },
+    agent: {
+      command: [process.execPath, fixtureAgent],
+      timeoutMs: 30_000,
+      inheritEnvironment: false,
+      passEnvironment: [],
+      promptTransport: "environment",
+    },
+    execution: { repetitions: 3, maxCoefficientOfVariationPercent: 10_000 },
     thresholds: {
       maxAddedFiles: 1,
       maxDurationIncreasePercent: 10_000,
       maxChurnIncreasePercent: 500,
       maxAddedTestFiles: 0,
       maxAddedDependencies: 0,
+      maxChangedDependencies: 0,
     },
     scenarios: [
       {

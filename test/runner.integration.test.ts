@@ -46,13 +46,20 @@ test("runComparison evaluates detached base and head worktrees", async () => {
 
     const config: EvolveConfig = {
       version: 1,
-      agent: { command: [process.execPath, path.join(tools, "agent.mjs")] },
+      agent: {
+        command: [process.execPath, path.join(tools, "agent.mjs")],
+        inheritEnvironment: false,
+        passEnvironment: [],
+        promptTransport: "environment",
+      },
+      execution: { repetitions: 2, maxCoefficientOfVariationPercent: 10_000 },
       thresholds: {
         maxAddedFiles: 0,
         maxDurationIncreasePercent: 10_000,
         maxChurnIncreasePercent: 200,
         maxAddedTestFiles: 0,
         maxAddedDependencies: 0,
+        maxChangedDependencies: 0,
       },
       scenarios: [
         {
@@ -65,7 +72,7 @@ test("runComparison evaluates detached base and head worktrees", async () => {
 
     const report = await runComparison({ repository: repo, base, head: "HEAD", config, outputDir: output });
     assert.equal(report.conclusion, "warning");
-    assert.equal(report.runs.length, 2);
+    assert.equal(report.runs.length, 4);
     assert.equal(report.runs.find((run) => run.side === "base")?.metrics.filesChanged, 1);
     assert.equal(report.runs.find((run) => run.side === "head")?.metrics.filesChanged, 2);
     assert.match(await readFile(path.join(output, "report.md"), "utf8"), /EvolveCI: warning/);
