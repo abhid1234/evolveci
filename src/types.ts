@@ -1,0 +1,83 @@
+export type CommandSpec = readonly [string, ...string[]];
+
+export interface ScenarioConfig {
+  id: string;
+  prompt: string;
+  verify: CommandSpec;
+  timeoutMs?: number;
+}
+
+export interface ThresholdConfig {
+  maxAddedFiles?: number;
+  maxDurationIncreasePercent?: number;
+  maxChurnIncreasePercent?: number;
+  maxAddedTestFiles?: number;
+  maxAddedDependencies?: number;
+}
+
+export interface EvolveConfig {
+  version: 1;
+  setup?: CommandSpec;
+  agent: {
+    command: CommandSpec;
+    timeoutMs?: number;
+  };
+  thresholds: Required<ThresholdConfig>;
+  scenarios: ScenarioConfig[];
+}
+
+export type RunSide = "base" | "head";
+
+export interface CommandResult {
+  command: string[];
+  exitCode: number | null;
+  signal: NodeJS.Signals | null;
+  timedOut: boolean;
+  durationMs: number;
+  stdout: string;
+  stderr: string;
+}
+
+export interface ChangeMetrics {
+  filesChanged: number;
+  linesAdded: number;
+  linesDeleted: number;
+  churn: number;
+  testFilesChanged: number;
+  dependenciesAdded: string[];
+  changedPaths: string[];
+}
+
+export interface ScenarioRun {
+  scenarioId: string;
+  side: RunSide;
+  revision: string;
+  success: boolean;
+  agent: CommandResult;
+  verifier: CommandResult | null;
+  metrics: ChangeMetrics;
+}
+
+export type FindingSeverity = "improvement" | "info" | "warning" | "critical";
+
+export interface Finding {
+  scenarioId: string;
+  severity: FindingSeverity;
+  metric: string;
+  message: string;
+  baseValue?: number | boolean;
+  headValue?: number | boolean;
+}
+
+export type Conclusion = "pass" | "warning" | "inconclusive";
+
+export interface ComparisonReport {
+  schemaVersion: 1;
+  generatedAt: string;
+  repository: string;
+  baseRevision: string;
+  headRevision: string;
+  conclusion: Conclusion;
+  findings: Finding[];
+  runs: ScenarioRun[];
+}

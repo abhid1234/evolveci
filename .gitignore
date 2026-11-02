@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.evolveci/runs/
+demo/output/
+.DS_Store
+*.log

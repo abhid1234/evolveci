@@ -1,0 +1,40 @@
+{
+  "name": "@avee1234/evolveci",
+  "version": "0.1.0-alpha.0",
+  "description": "Counterfactual evolvability testing for pull requests.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "evolveci": "dist/src/cli.js"
+  },
+  "files": [
+    "dist/src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "npm run build && npm test",
+    "demo": "npm run build && node demo/run-demo.mjs",
+    "test": "node --test dist/test/*.test.js",
+    "start": "node dist/src/cli.js"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.6",
+    "typescript": "^5.9.2"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "ci",
+    "code-quality",
+    "ai-agents",
+    "maintainability",
+    "github-actions"
+  ]
+}

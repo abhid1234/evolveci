@@ -1,0 +1,18 @@
+version: 1
+setup: ["npm", "ci"]
+agent:
+  command: ["node", "./tools/evolveci-agent.mjs"]
+  timeoutMs: 600000
+thresholds:
+  maxAddedFiles: 2
+  maxDurationIncreasePercent: 50
+  maxChurnIncreasePercent: 50
+  maxAddedTestFiles: 0
+  maxAddedDependencies: 0
+scenarios:
+  - id: add-enterprise-auditor
+    prompt: Add a read-only enterprise auditor role without changing existing role behavior.
+    verify: ["npm", "test", "--", "tests/auditor-role.test.ts"]
+  - id: add-second-payment-provider
+    prompt: Add a second payment provider behind the existing payment interface.
+    verify: ["npm", "test", "--", "tests/payment-provider-contract.test.ts"]
