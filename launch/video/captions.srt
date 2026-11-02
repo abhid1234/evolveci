@@ -1,0 +1,31 @@
+1
+00:00:00,000 --> 00:00:05,000
+Your pull request passes. But what did it do to the next change?
+
+2
+00:00:05,000 --> 00:00:12,000
+EvolveCI is an experiment in counterfactual CI.
+
+3
+00:00:12,000 --> 00:00:20,000
+Run the same maintainer-chosen follow-up on base and head.
+
+4
+00:00:20,000 --> 00:00:29,000
+In the demo: one changed file on base, four on head.
+
+5
+00:00:29,000 --> 00:00:38,000
+No opaque maintainability score. Keep the evidence.
+
+6
+00:00:38,000 --> 00:00:46,000
+Failures stay visible. Inconclusive is a result.
+
+7
+00:00:46,000 --> 00:00:53,000
+It tests one chosen follow-up. It does not predict your roadmap.
+
+8
+00:00:53,000 --> 00:01:00,000
+Your pull request passes. Test the change after it.
