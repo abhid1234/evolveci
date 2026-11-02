@@ -34,6 +34,10 @@ test("parseConfig rejects shell command strings", () => {
   assert.throws(() => parseConfig(VALID.replace('["node", "agent.mjs"]', '"node agent.mjs"')), /non-empty array/);
 });
 
+test("parseConfig rejects unknown keys instead of silently ignoring typos", () => {
+  assert.throws(() => parseConfig(VALID.replace("version: 1", "version: 1\nrepetitons: 3")), /unknown key.*repetitons/);
+});
+
 test("parseConfig validates repetitions and environment allowlists", () => {
   assert.throws(() => parseConfig(VALID.replace("scenarios:", "execution:\n  repetitions: 21\nscenarios:")), /must not exceed 20/);
   assert.throws(

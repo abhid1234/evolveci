@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evolveci.dev/schemas/report.schema.json",
+  "title": "EvolveCI comparison report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "repository", "baseRevision", "headRevision", "conclusion", "findings", "summaries", "runs"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "repository": { "type": "string" },
+    "baseRevision": { "type": "string", "minLength": 7 },
+    "headRevision": { "type": "string", "minLength": 7 },
+    "conclusion": { "enum": ["pass", "warning", "inconclusive"] },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "summaries": { "type": "array", "items": { "$ref": "#/$defs/summary" } },
+    "runs": { "type": "array", "items": { "type": "object" } }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "severity", "metric", "message"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "severity": { "enum": ["improvement", "info", "warning", "critical"] },
+        "metric": { "type": "string" },
+        "message": { "type": "string" },
+        "baseValue": { "type": ["number", "boolean"] },
+        "headValue": { "type": ["number", "boolean"] }
+      }
+    },
+    "metricSummary": {
+      "type": "object",
+      "required": ["successRate", "medianDurationMs", "medianFilesChanged", "medianChurn", "medianTestFilesChanged", "medianDependenciesAdded", "medianDependenciesChanged", "durationCoefficientOfVariationPercent"],
+      "properties": {
+        "successRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "medianDurationMs": { "type": ["number", "null"] },
+        "medianFilesChanged": { "type": ["number", "null"] },
+        "medianChurn": { "type": ["number", "null"] },
+        "medianTestFilesChanged": { "type": ["number", "null"] },
+        "medianDependenciesAdded": { "type": ["number", "null"] },
+        "medianDependenciesChanged": { "type": ["number", "null"] },
+        "durationCoefficientOfVariationPercent": { "type": ["number", "null"] }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenarioId", "status", "base", "head"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "status": { "enum": ["comparable", "improved", "regressed", "inconclusive"] },
+        "base": { "$ref": "#/$defs/metricSummary" },
+        "head": { "$ref": "#/$defs/metricSummary" }
+      }
+    }
+  }
+}

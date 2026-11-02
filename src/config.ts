@@ -23,6 +23,11 @@ function asObject(value: unknown, label: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function assertKnownKeys(object: Record<string, unknown>, allowed: readonly string[], label: string): void {
+  const unknown = Object.keys(object).filter((key) => !allowed.includes(key));
+  if (unknown.length > 0) throw new Error(`${label} contains unknown key(s): ${unknown.join(", ")}`);
+}
+
 function asCommand(value: unknown, label: string): CommandSpec {
   if (!Array.isArray(value) || value.length === 0 || value.some((part) => typeof part !== "string" || part.length === 0)) {
     throw new Error(`${label} must be a non-empty array of non-empty strings`);
@@ -48,6 +53,7 @@ function threshold(value: unknown, label: string, fallback: number): number {
 
 function parseScenario(value: unknown, index: number): ScenarioConfig {
   const object = asObject(value, `scenarios[${index}]`);
+  assertKnownKeys(object, ["id", "prompt", "verify", "timeoutMs"], `scenarios[${index}]`);
   const { id, prompt } = object;
   if (typeof id !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(id)) {
     throw new Error(`scenarios[${index}].id must use lowercase letters, numbers, and hyphens`);
@@ -66,9 +72,11 @@ function parseScenario(value: unknown, index: number): ScenarioConfig {
 
 export function parseConfig(input: string): EvolveConfig {
   const raw = asObject(parse(input), "config");
+  assertKnownKeys(raw, ["version", "setup", "agent", "execution", "thresholds", "scenarios"], "config");
   if (raw.version !== 1) throw new Error("config.version must be 1");
 
   const agent = asObject(raw.agent, "config.agent");
+  assertKnownKeys(agent, ["command", "timeoutMs", "inheritEnvironment", "passEnvironment", "promptTransport"], "config.agent");
   const timeoutMs = optionalPositiveInteger(agent.timeoutMs, "config.agent.timeoutMs");
   const inheritEnvironment = agent.inheritEnvironment ?? false;
   if (typeof inheritEnvironment !== "boolean") {
@@ -95,6 +103,19 @@ export function parseConfig(input: string): EvolveConfig {
 
   const thresholds = raw.thresholds === undefined ? {} : asObject(raw.thresholds, "config.thresholds");
   const execution = raw.execution === undefined ? {} : asObject(raw.execution, "config.execution");
+  assertKnownKeys(execution, ["repetitions", "maxCoefficientOfVariationPercent"], "config.execution");
+  assertKnownKeys(
+    thresholds,
+    [
+      "maxAddedFiles",
+      "maxDurationIncreasePercent",
+      "maxChurnIncreasePercent",
+      "maxAddedTestFiles",
+      "maxAddedDependencies",
+      "maxChangedDependencies",
+    ],
+    "config.thresholds",
+  );
   const repetitions = optionalPositiveInteger(execution.repetitions, "config.execution.repetitions") ?? DEFAULT_EXECUTION.repetitions;
   if (repetitions > 20) throw new Error("config.execution.repetitions must not exceed 20");
   const parsed: EvolveConfig = {

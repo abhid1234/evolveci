@@ -45,6 +45,13 @@ npm install
 npm run check
 ```
 
+After the package is published, install the CLI in a repository with:
+
+```bash
+npm install --save-dev @avee1234/evolveci
+npx evolveci --version
+```
+
 ## Configure a repository
 
 Create `.evolveci/scenarios.yaml`:

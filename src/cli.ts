@@ -4,8 +4,9 @@ import { loadConfig } from "./config.js";
 import { repositoryRoot } from "./git.js";
 import { renderMarkdown } from "./report.js";
 import { runComparison } from "./runner.js";
+import { VERSION } from "./version.js";
 
-const VERSION = "0.1.0-alpha.0";
+const VALUE_OPTIONS = new Set(["--repo", "--config", "--output", "--base", "--head"]);
 
 function usage(): string {
   return `EvolveCI ${VERSION}
@@ -33,6 +34,21 @@ function valueFor(args: string[], name: string): string | undefined {
   return value;
 }
 
+function validateArguments(args: string[], command: string): void {
+  const allowed = new Set(command === "run" ? VALUE_OPTIONS : ["--repo", "--config"]);
+  const seen = new Set<string>();
+  for (let index = 1; index < args.length; index += 1) {
+    const argument = args[index];
+    if (!argument?.startsWith("--")) throw new Error(`unexpected positional argument: ${argument ?? ""}`);
+    if (!allowed.has(argument)) throw new Error(`unknown option for ${command}: ${argument}`);
+    if (seen.has(argument)) throw new Error(`duplicate option: ${argument}`);
+    seen.add(argument);
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
+    index += 1;
+  }
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   if (args.includes("--help") || args.length === 0) {
@@ -45,6 +61,8 @@ async function main(): Promise<void> {
   }
 
   const command = args[0];
+  if (command !== "validate" && command !== "run") throw new Error(`unknown command: ${command}`);
+  validateArguments(args, command);
   const requestedRepo = path.resolve(valueFor(args, "--repo") ?? process.cwd());
   const repository = await repositoryRoot(requestedRepo);
   const configPath = path.resolve(repository, valueFor(args, "--config") ?? ".evolveci/scenarios.yaml");
@@ -54,8 +72,6 @@ async function main(): Promise<void> {
     process.stdout.write(`Valid EvolveCI config: ${config.scenarios.length} scenario(s).\n`);
     return;
   }
-  if (command !== "run") throw new Error(`unknown command: ${command}`);
-
   const base = valueFor(args, "--base");
   const head = valueFor(args, "--head");
   if (!base || !head) throw new Error("run requires --base and --head");
