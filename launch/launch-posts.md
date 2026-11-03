@@ -1,6 +1,6 @@
 # EvolveCI launch posts
 
-Drafts only. Do not post until the npm, release, demo, and Substack rows in [`FACT-CHECK.md`](FACT-CHECK.md) are verified.
+Drafts only. The npm package, GitHub release, CI, and demo are verified; replace `{{SUBSTACK_URL}}` and verify the published essay row in [`FACT-CHECK.md`](FACT-CHECK.md) before posting.
 
 ## X
 

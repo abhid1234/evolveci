@@ -268,7 +268,7 @@ test("public launch gate requires explicit positive readback states", async () =
     const launchPosts = path.join(directory, "launch-posts.md");
     const surfaces = new Map([
       ["Code", "https://github.com/abhid1234/evolveci"],
-      ["CI proof", "https://github.com/abhid1234/evolveci/pull/5/checks"],
+      ["CI proof", "https://github.com/abhid1234/evolveci/actions/runs/41704091228"],
       ["npm", "https://www.npmjs.com/package/@avee1234/evolveci"],
       ["GitHub release", "https://github.com/abhid1234/evolveci/releases/tag/v0.1.0"],
       ["Demo / playground", "https://github.com/abhid1234/evolveci#run-the-deterministic-demo"],

@@ -2,6 +2,8 @@
 
 Nothing in this runbook auto-publishes. Complete each readback before moving to the next public claim.
 
+> **v0.1.0 execution record (2026-11-03 PT):** package, clean-install readback, exact-SHA release, tarball, and CycloneDX SBOM are complete. Do not rerun the bootstrap steps for this version. The remaining public-distribution gate is the Substack URL.
+
 ## 1. Freeze the release candidate
 
 - Confirm `main` is clean and the release commit is the intended SHA.
@@ -12,8 +14,8 @@ Nothing in this runbook auto-publishes. Complete each readback before moving to 
 
 ## 2. Publish the package and release
 
-- Confirm the public registry still returns 404 for `@avee1234/evolveci`; this proves the package needs a one-time bootstrap publication.
-- From the clean, tagged `v0.1.0` checkout, authenticate with npm account 2FA and run `npm publish --access public --provenance=false`. The explicit override is required because a local bootstrap publish cannot produce GitHub Actions provenance.
+- The initial public-registry 404 was confirmed before the one-time bootstrap publication.
+- The clean, tagged `v0.1.0` checkout was published with `npm publish --access public --provenance=false`; a local bootstrap publish cannot produce GitHub Actions provenance.
 - Read `@avee1234/evolveci` directly from the public npm registry.
 - Install the exact published version in a temporary directory and run `evolveci --version`.
 - Configure npm trusted publishing for owner `abhid1234`, repository `evolveci`, workflow `release.yml`, and environment `npm` so later releases publish with OIDC provenance.
