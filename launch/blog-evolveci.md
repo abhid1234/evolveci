@@ -95,7 +95,7 @@ npm run demo
 
 It writes the JSON, Markdown, HTML, and raw evidence under `demo/output/`.
 
-The release sequence requires a signed-out npm registry readback before this essay is published. Once that gate is green, install the exact alpha with:
+The v0.1.0 release passed public-registry readback and a clean-install smoke test. Install the exact alpha with:
 
 ```bash
 npm install --global @avee1234/evolveci@0.1.0
@@ -106,6 +106,6 @@ The code, schemas, demo, and limitations are all here:
 - [Code and demo](https://github.com/abhid1234/evolveci?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 - [npm package](https://www.npmjs.com/package/@avee1234/evolveci)
 - [Executable specification](https://github.com/abhid1234/evolveci/blob/main/docs/SPEC.md?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
-- [Green cross-platform CI](https://github.com/abhid1234/evolveci/pull/5/checks?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
+- [Green cross-platform CI](https://github.com/abhid1234/evolveci/actions/runs/41704091228?utm_source=substack&utm_medium=newsletter&utm_campaign=evolveci-launch)
 
 It is rough and early. I would especially like people to poke holes in the scenario model: what would make a future-change probe fair enough to trust in your repository?

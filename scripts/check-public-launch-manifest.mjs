@@ -23,7 +23,7 @@ for (const line of factCheck.split(/\r?\n/)) {
 
 const required = new Map([
   ["Code", /^https:\/\/github\.com\/abhid1234\/evolveci\/?$/],
-  ["CI proof", /^https:\/\/github\.com\/abhid1234\/evolveci\/pull\/5\/checks$/],
+  ["CI proof", /^https:\/\/github\.com\/abhid1234\/evolveci\/actions\/runs\/41704091228$/],
   ["npm", /^https:\/\/www\.npmjs\.com\/package\/@avee1234\/evolveci\/?$/],
   ["GitHub release", /^https:\/\/github\.com\/abhid1234\/evolveci\/releases\/tag\/v0\.1\.0$/],
   ["Demo / playground", /^https:\/\/github\.com\/abhid1234\/evolveci#run-the-deterministic-demo$/],

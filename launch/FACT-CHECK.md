@@ -1,6 +1,6 @@
 # Launch fact check
 
-Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9f2a8e3bc5502fc13a1e6c7b6c250`, on 2026-11-01 Pacific time. Public surfaces require their own readbacks below.
+Product claims and release surfaces were reverified from `main` at `e1b5f74145196d259a02933e56defccebc7bd228` on 2026-11-03 Pacific time. Public claims below are backed by exact-SHA CI, registry readback, a clean install, or a signed-out public URL as noted.
 
 ## Safe public claims
 
@@ -12,7 +12,7 @@ Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9
 | Repetitions are counterbalanced and summarized with medians. | `src/runner.ts`, `src/report.ts` | Do not claim statistical significance. |
 | Failed attempts retain stage, reason, retryability, logs, and schema-validated evidence. | report schema v2 and failure tests | Retryability is descriptive; no automatic retries occur. |
 | The package has a built-in Codex adapter. | `src/adapters/codex.ts` | Do not claim adapters for tools that are not implemented. |
-| CI passes on Node 20, 22, 24, macOS, and Windows. | Launch PR #5 checks on its current exact head | Use the stable PR checks link; do not freeze an older run ID into launch copy. |
+| CI passes on Node 20, 22, 24, macOS, and Windows. | Exact-main run `41704091228` on release SHA `e1b5f74145196d259a02933e56defccebc7bd228` | Keep the exact run link with the release evidence. |
 | Local tests pass. | 34 tests on `0.1.0` | Update the count if tests change. |
 
 ## Public links
@@ -20,9 +20,9 @@ Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9
 | Surface | URL | Current state |
 |---|---|---|
 | Code | https://github.com/abhid1234/evolveci | LIVE_VERIFIED: repository reachable |
-| CI proof | https://github.com/abhid1234/evolveci/pull/5/checks | LIVE_VERIFIED: current PR head green |
-| npm | https://www.npmjs.com/package/@avee1234/evolveci | **Pending first publication; registry returned 404 on 2026-11-01 PT** |
-| GitHub release | https://github.com/abhid1234/evolveci/releases | **No release yet** |
+| CI proof | https://github.com/abhid1234/evolveci/actions/runs/41704091228 | LIVE_VERIFIED: exact release SHA green on Node 20/22/24, macOS, and Windows |
+| npm | https://www.npmjs.com/package/@avee1234/evolveci | LIVE_VERIFIED: registry returned `@avee1234/evolveci@0.1.0`; clean install reported `0.1.0` on 2026-11-03 PT |
+| GitHub release | https://github.com/abhid1234/evolveci/releases/tag/v0.1.0 | LIVE_VERIFIED: tag targets the release SHA; tarball and CycloneDX SBOM attached by release run `41705018178` |
 | Demo / playground | https://github.com/abhid1234/evolveci#run-the-deterministic-demo | LIVE_VERIFIED: repository demo instructions reachable |
 | Substack | TBD | **Pending** |
 
@@ -31,5 +31,5 @@ Product claims were reverified on launch PR #5, based on `main` at `adebf0de81a9
 - No claim that EvolveCI predicts the next requirement.
 - No claim that the current worktree isolation safely contains untrusted code.
 - No claim of production use, hosted execution, model-cost accuracy, or broad public-repository validation.
-- No claim that npm or a GitHub release is live until independent readback succeeds.
+- No claim that a future npm version or GitHub release is live until its own independent readback succeeds.
 - No claim that Claude Code, Cursor, or Google Antigravity adapters exist today. The adapter contract is vendor-neutral, but only Codex is implemented.

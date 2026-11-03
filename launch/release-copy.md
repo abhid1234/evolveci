@@ -1,6 +1,6 @@
 # GitHub release copy
 
-Draft only. Confirm the final version and tag against `package.json`, `package-lock.json`, `src/version.ts`, and `CHANGELOG.md` before creating the release.
+Published for `v0.1.0` on 2026-11-03 PT after confirming the version and tag against `package.json`, `package-lock.json`, `src/version.ts`, and `CHANGELOG.md`. Public release: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0
 
 ## Suggested title
 

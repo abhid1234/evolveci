@@ -13,7 +13,7 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`FACT-CHECK.md`](FACT-CHECK.md) | Claim ledger and public-surface readiness | Ready |
 | [`LAUNCH-BRIEF.md`](LAUNCH-BRIEF.md) | One-page positioning, proof, audience, and launch gate | Ready |
 | [`demo-script.md`](demo-script.md) | Two-minute terminal demo run-of-show | Ready |
-| [`release-copy.md`](release-copy.md) | Draft GitHub release title and notes | Ready |
+| [`release-copy.md`](release-copy.md) | Source for the published GitHub release title and notes | Published for v0.1.0 |
 | [`FAQ.md`](FAQ.md) | Accurate answers for launch comments and objections | Ready |
 | [`ACCESSIBILITY.md`](ACCESSIBILITY.md) | Figure alt text, video description, and caption checks | Ready |
 | [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md) | Exact morning publish order and independent readbacks | Ready |
@@ -22,10 +22,10 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 
 ## Launch sequence
 
-1. Generate the final Will track, commit the production media, and run `npm run launch:candidate-check`; merge the launch-material PR only after that combined gate and CI pass.
-2. Bootstrap `@avee1234/evolveci@0.1.0` once with account 2FA, following [`PUBLISHING-RUNBOOK.md`](PUBLISHING-RUNBOOK.md); the package does not yet exist, so trusted publishing cannot create it.
-3. Verify the npm registry response independently.
-4. Configure trusted publishing for subsequent releases and create the exact-SHA GitHub release.
+1. **Complete:** the final Will track, production media, combined candidate gate, and exact-main cross-platform CI are green.
+2. **Complete:** `@avee1234/evolveci@0.1.0` is public and passed independent registry metadata plus clean-install readback.
+3. **Complete:** GitHub release `v0.1.0` targets the release SHA and includes the exact npm tarball plus CycloneDX SBOM.
+4. **Next:** configure package-specific trusted publishing for subsequent releases.
 5. Paste `blog-evolveci-substack.html` into Substack, upload the video, and record the public URL in [`FACT-CHECK.md`](FACT-CHECK.md).
 6. Run `npm run launch:public-check` and independently open every public destination.
 7. Post manually. Nothing in this directory auto-posts.
