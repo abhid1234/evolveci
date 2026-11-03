@@ -5,7 +5,7 @@ on:
     types: [published]
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -29,6 +29,16 @@ jobs:
       - name: Verify release tag
         run: test "${GITHUB_REF_NAME}" = "v$(node -p "require('./package.json').version")"
       - run: npm run release:check
+      - name: Build release assurance assets
+        id: assets
+        run: |
+          pack_result=$(npm pack --ignore-scripts --json)
+          tarball=$(node -e "process.stdout.write(JSON.parse(process.argv[1])[0].filename)" "$pack_result")
+          test -n "$tarball"
+          test -f "$tarball"
+          npm sbom --sbom-format cyclonedx > sbom.cdx.json
+          test -s sbom.cdx.json
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
       - name: Read package metadata
         id: package
         run: |
@@ -56,3 +66,12 @@ jobs:
           PACKAGE_NAME: ${{ steps.package.outputs.name }}
           PACKAGE_VERSION: ${{ steps.package.outputs.version }}
         run: test "$(npm view "$PACKAGE_NAME@$PACKAGE_VERSION" version --prefer-online)" = "$PACKAGE_VERSION"
+      - name: Attach package and SBOM to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARBALL: ${{ steps.assets.outputs.tarball }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            "$TARBALL#npm package tarball" \
+            "sbom.cdx.json#CycloneDX SBOM" \
+            --clobber

@@ -74,8 +74,21 @@ if (failures.length === 0) {
   ]) {
     if (!controlRoom.includes(channel)) failures.push(`launch control room is missing complete copy for ${channel}`);
   }
+  for (const assurance of ["npm package tarball", "CycloneDX SBOM", "public-registry readback"]) {
+    if (!controlRoom.includes(assurance)) failures.push(`launch control room is missing release assurance copy for ${assurance}`);
+  }
   const copyButtons = controlRoom.match(/class="copy-button"/g)?.length ?? 0;
   if (copyButtons !== 8) failures.push(`launch control room has ${copyButtons} copy buttons; expected 8`);
+
+  const releaseWorkflow = read(".github/workflows/release.yml").toString("utf8");
+  for (const assurance of [
+    "npm pack --ignore-scripts --json",
+    "npm sbom --sbom-format cyclonedx",
+    "gh release upload",
+    "sbom.cdx.json#CycloneDX SBOM",
+  ]) {
+    if (!releaseWorkflow.includes(assurance)) failures.push(`release workflow is missing ${assurance}`);
+  }
 
   const animation = read("launch/video/anim.html").toString("utf8");
   for (const destination of [
