@@ -2,6 +2,20 @@
 
 All notable changes to EvolveCI are documented here. The format follows Keep a Changelog and versions follow Semantic Versioning.
 
+## [0.1.0] - 2026-11-01
+
+### Added
+
+- Stable executable alpha for paired base/head future-change probes in detached Git worktrees.
+- Strict repository-owned scenarios, deterministic verification, counterbalanced repetitions, median and variability reporting, and fail-closed inconclusive results.
+- Versioned JSON, Markdown, offline HTML, raw-log, failure, retryability, patch, dependency, duration, and Codex telemetry evidence.
+- Built-in Codex adapter, vendor-neutral command contract, deterministic three-scenario demo, clean-consumer package smoke test, and trusted-publisher release workflow.
+
+### Changed
+
+- Promoted the reviewed release candidate to the stable `latest` release line without widening the alpha's claims or security boundary.
+- Preserved failed attempts and unavailable metrics explicitly instead of silently retrying or manufacturing zero-valued evidence.
+
 ## [0.1.0-rc.2] - 2026-11-01
 
 ### Added
@@ -41,5 +55,6 @@ All notable changes to EvolveCI are documented here. The format follows Keep a C
 - Repeated pairs now alternate base/head execution order to reduce systematic warm-cache and machine-order bias.
 - Same-revision comparisons now fail closed before creating evidence output or detached worktrees.
 
+[0.1.0]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0
 [0.1.0-rc.2]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0-rc.2
 [0.1.0-rc.1]: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0-rc.1

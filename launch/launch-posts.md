@@ -32,6 +32,14 @@ Code + deterministic demo: https://github.com/abhid1234/evolveci?utm_source=link
 
 How it works: https://github.com/abhid1234/evolveci/blob/main/docs/SPEC.md?utm_source=linkedin&utm_medium=post&utm_campaign=evolveci-launch
 
+Run the demo: https://github.com/abhid1234/evolveci#run-the-deterministic-demo
+
+npm: https://www.npmjs.com/package/@avee1234/evolveci
+
+Release: https://github.com/abhid1234/evolveci/releases/tag/v0.1.0
+
+Essay: {{SUBSTACK_URL}}
+
 #opensource #devtools #aiagents #softwareengineering #continuousintegration
 
 ## Hacker News

@@ -42,11 +42,11 @@ This is a mechanism demonstration, not a general benchmark. Do not imply that fo
 
 ## Primary launch assets
 
-1. The 60-second video for X, LinkedIn, and the Substack header.
+1. The 66-second video for X, LinkedIn, and the Substack header.
 2. The 1-vs-4 figure for the concrete proof.
 3. The deep-dive essay for the mechanism, fairness choices, and limitations.
 4. The repository demo for readers who want to reproduce the claim.
 
 ## Launch gate
 
-Do not post until all four pending public surfaces are independently verified: npm registry, GitHub release, public demo URL, and published Substack URL. The current status is maintained in [`FACT-CHECK.md`](FACT-CHECK.md).
+Do not post until the three unpublished public surfaces are independently verified: npm registry, GitHub release, and published Substack URL. The deterministic demo already has a canonical repository destination. Current status is maintained in [`FACT-CHECK.md`](FACT-CHECK.md).

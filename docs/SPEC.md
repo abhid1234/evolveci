@@ -66,7 +66,7 @@ The alpha runs pairs sequentially to avoid machine contention contaminating dura
 
 ## Report format compatibility
 
-Report schemas are immutable and version-addressed. `schemas/report.schema.json` remains the original schema v1 contract and `schemas/report-v2.schema.json` validates reports emitted by `0.1.0-rc.2`. Consumers should select a schema from the report's required `schemaVersion` field rather than treating an unversioned file as “latest.” Both schemas ship in the npm package so stored v1 evidence remains validatable after upgrading.
+Report schemas are immutable and version-addressed. `schemas/report.schema.json` remains the original schema v1 contract and `schemas/report-v2.schema.json` validates reports emitted by `0.1.0`. Consumers should select a schema from the report's required `schemaVersion` field rather than treating an unversioned file as “latest.” Both schemas ship in the npm package so stored v1 evidence remains validatable after upgrading.
 
 Schema v2 adds five required field groups:
 

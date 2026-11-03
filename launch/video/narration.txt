@@ -8,4 +8,6 @@ There is no opaque maintainability score. EvolveCI preserves changed paths, chur
 
 This is an early, open-source alpha with a built-in Codex adapter. It does not predict your roadmap. It turns one architectural hunch into an experiment you can inspect.
 
+It is rough and early, and the next step is trying fair probes on real public repositories. Run the fixture, inspect the evidence, and poke holes in it.
+
 Your pull request passes. Test the change after it.

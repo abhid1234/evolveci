@@ -1,0 +1,24 @@
+{
+  "provider": "ElevenLabs",
+  "voiceName": "Will",
+  "voiceId": "bIHbv24MWmeRgasZH58o",
+  "modelId": "eleven_multilingual_v2",
+  "settings": {
+    "stability": 0.35,
+    "similarityBoost": 0.8,
+    "style": 0.35,
+    "speed": 1.2,
+    "useSpeakerBoost": true
+  },
+  "durationSeconds": 60.279002,
+  "bytes": 965528,
+  "narrationSha256": "900cd7549e28d8188f608399f41970a39c959be46f78fe3b8d0b3cbc0ea6a5d6",
+  "audioSha256": "64b87086c07525bd36ede94e98580d4ae4c5a8325a5c8bb79a1ffe67ab15093d",
+  "requestSha256": "6c016952065e477699f6470412853108b2ccf6a2dbbd2e6288cc5473420d3815",
+  "render": {
+    "voiceSha256": "64b87086c07525bd36ede94e98580d4ae4c5a8325a5c8bb79a1ffe67ab15093d",
+    "musicSha256": "c3a51369960f042b13d83cdefbc08027db32d5045c007a0b870fa4fae85fbb0f",
+    "silentVideoSha256": "9fe000fbea849ef78084ec23d161799b00130a96a7ac6066e15b26442a7d4b0b",
+    "masterSha256": "094f53cf87339135ec4ffe7d4aaa652a09c330fa8db165334e964d5fe5a8431f"
+  }
+}

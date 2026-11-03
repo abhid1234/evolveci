@@ -9,7 +9,7 @@ const modulePath = process.env.PUPPETEER_CORE_PATH;
 const executablePath = process.env.CHROME_BIN;
 const ffmpeg = process.env.FFMPEG_BIN || "ffmpeg";
 const fps = 24;
-const duration = 60;
+const duration = 66;
 
 if (!modulePath || !executablePath) throw new Error("Set PUPPETEER_CORE_PATH and CHROME_BIN.");
 const puppeteer = require(modulePath);
