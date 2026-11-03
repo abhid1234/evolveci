@@ -24,6 +24,12 @@ A repository defines a future-change prompt, deterministic verifier, repetitions
 - deterministic three-scenario demo showing a 1-file base patch versus a 4-file head patch;
 - Node 20, 22, and 24 CI plus macOS and Windows smoke coverage.
 
+### Release assurance
+
+- The attached `.tgz` is the exact npm package tarball produced from this release tag.
+- The attached `sbom.cdx.json` is a CycloneDX software bill of materials generated from the same checkout.
+- The release workflow independently reads `@avee1234/evolveci@0.1.0` back from the public npm registry before uploading either asset.
+
 ### Important boundaries
 
 - Scenarios are maintainer-chosen experiments, not predictions of the roadmap.
