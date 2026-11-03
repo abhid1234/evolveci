@@ -9,7 +9,7 @@ This directory is the source of truth for EvolveCI launch materials. It is inten
 | [`blog-evolveci.md`](blog-evolveci.md) | Canonical Substack essay source | Ready for editorial review |
 | [`blog-evolveci-substack.html`](blog-evolveci-substack.html) | One-paste Substack HTML with three embedded figures | Ready |
 | [`launch-posts.md`](launch-posts.md) | X, LinkedIn, HN, Reddit, and Product Hunt copy | Ready for editorial review |
-| [`launch-evolveci.html`](launch-evolveci.html) | Copy-friendly launch control room | Ready |
+| [`launch-evolveci.html`](launch-evolveci.html) | Self-contained launch control room with copy buttons for every social channel and the GitHub release | Ready |
 | [`FACT-CHECK.md`](FACT-CHECK.md) | Claim ledger and public-surface readiness | Ready |
 | [`LAUNCH-BRIEF.md`](LAUNCH-BRIEF.md) | One-page positioning, proof, audience, and launch gate | Ready |
 | [`demo-script.md`](demo-script.md) | Two-minute terminal demo run-of-show | Ready |

@@ -62,6 +62,20 @@ if (failures.length === 0) {
   for (const expected of ["video/evolveci-launch.mp4", "figures/blog-banner.png", "copy-button", "MP4 · 66s · Will VO", "npm run launch:candidate-check"]) {
     if (!controlRoom.includes(expected)) failures.push(`launch control room is missing ${expected}`);
   }
+  for (const channel of [
+    "<h3>X</h3>",
+    "<h3>LinkedIn post</h3>",
+    "<h3>LinkedIn first comment</h3>",
+    "<h3>Show HN</h3>",
+    "<h3>Reddit · r/LocalLLaMA</h3>",
+    "<h3>Product Hunt</h3>",
+    "<h3>GitHub release title</h3>",
+    "<h3>GitHub release notes</h3>",
+  ]) {
+    if (!controlRoom.includes(channel)) failures.push(`launch control room is missing complete copy for ${channel}`);
+  }
+  const copyButtons = controlRoom.match(/class="copy-button"/g)?.length ?? 0;
+  if (copyButtons !== 8) failures.push(`launch control room has ${copyButtons} copy buttons; expected 8`);
 
   const animation = read("launch/video/anim.html").toString("utf8");
   for (const destination of [
